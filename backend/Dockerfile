@@ -4,7 +4,7 @@ FROM python:3.12
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y cron && apt-get install nano && apt-get clean
+#RUN apt-get update && apt-get install -y cron && apt-get install nano && apt-get clean
 
 # Копируем файл зависимостей
 COPY requirements.txt .
