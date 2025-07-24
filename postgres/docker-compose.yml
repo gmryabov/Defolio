@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16.4
+    env_file:
+      - ../.env
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - default
+
+  adminer:
+    image: adminer
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "3080:8080"
+    networks:
+      - default
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    external: true
+    name: shared_network
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1450

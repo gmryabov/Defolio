@@ -1,0 +1,25 @@
+services:
+  web:
+    env_file:
+      - ../.env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "pip install -r requirements.txt && python manage.py collectstatic && python manage.py runserver 0.0.0.0:3000"
+    restart: always
+    volumes:
+      - .:/app
+      - ./static:/static
+    ports:
+      - "3000:3000"
+    networks:
+      - default
+
+
+networks:
+  default:
+    external: true
+    name: shared_network
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1450

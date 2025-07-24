@@ -1,0 +1,23 @@
+services:
+  celery_worker:
+    build:
+      context: ../backend
+      dockerfile: ../celery/Dockerfile
+    command: celery -A backend.Defolio worker --loglevel=info
+    volumes:
+      - ../backend:/app/backend
+    env_file:
+      - ../.env
+    networks:
+      - default
+    environment:
+      - PYTHONPATH=/app
+
+networks:
+  default:
+    external: true
+    name: shared_network
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1450
+
