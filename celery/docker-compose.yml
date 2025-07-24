@@ -1,8 +1,12 @@
 services:
   celery_worker:
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     build:
       context: ../backend
       dockerfile: ../celery/Dockerfile
+      network: host
     command: celery -A backend.Defolio worker --loglevel=info
     volumes:
       - ../backend:/app/backend
