@@ -10,6 +10,7 @@ urlpatterns = [
     path('ajax/toggle_relation/', views.toggle_relation, name='ajax_toggle_relation'),
     path('ajax/toggle-follow/', views.toggle_follow, name='ajax_toggle_follow'),
     path('ajax/updload_background/', views.upload_background, name='ajax_upload_background'),
+    path('ajax/update_profile_pic', views.update_profile_pic, name='ajax_update_profile_pic'),
     path('alax/post/comments/create/', views.create_comment, name='ajax_create_comment'),
     path('ajax/post/comments/edit/', views.edit_comment, name='ajax_edit_comment'),
     path('ajax/post/comments/delete/', views.delete_comment, name='ajax_delete_comment'),

@@ -13,11 +13,11 @@
         </div>
 
       <div class="modal-body d-flex flex-column align-items-center justify-content-center">
-          <form method="post" class="form-control border-0 w-75 d-flex flex-column text-center">
+          <form method="post" class="form-control border-0 w-75 d-flex flex-column text-center needs-validation">
               {% csrf_token %}
               <div class="form-floating mb-3">
                   {{ login_form.username }}
-                  <label for="floatingInput">Логин или почта</label>
+                  <label for="floatingInput">Логин</label>
                 </div>
                 <div class="form-floating mb-3">
                     {{ login_form.password }}

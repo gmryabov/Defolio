@@ -102,9 +102,13 @@
                             {% if not comment.is_deleted %}
                                 <div class="d-flex flex-column mb-2">
                                     <div class="d-flex align-items-center gap-2">
-                                    {% include 'notedly/include/user_profile.html' with profile=comment.author width=35 height=35 %}
+                                        <a href="{% url 'profile' profile_id=comment.author.id %}" class="text-decoration-none text-body">
+                                            {% include 'notedly/include/user_profile.html' with profile=comment.author width=35 height=35 %}
+                                        </a>
                                     <div class="d-flex flex-column mb-2">
-                                        <div class="fs-6">@{{ comment.author }}</div>
+                                        <a href="{% url 'profile' profile_id=comment.author.id %}" class="text-decoration-none text-body">
+                                            <div class="fs-6">@{{ comment.author }}</div>
+                                        </a>
                                             <div class="text-muted smaller">в посте <a class="text-decoration-none text-body" href="{% url 'post_detail' post_slug=comment.post.slug %}">{{ comment.post.title }}</a></div>
                                         </div>
                                     </div>
@@ -272,12 +276,14 @@
             modal.show();
         });
     });
+    {% if request.user.is_authenticated %}
     document.querySelector('#createPostBtn').addEventListener('click', function () {
         document.querySelector('#id_title').value = '';
         document.querySelector('#id_content').value = '';
         document.querySelector('#post_id').value = '';
         document.querySelector('#post_category').value = 1;
      });
+    {% endif %}
     document.querySelectorAll('.publish-btn').forEach(button => {
         button.addEventListener('click', function () {
             const postId = this.dataset.postId;
@@ -330,5 +336,60 @@
                 });
         })
     });
+    document.addEventListener('DOMContentLoaded', function () {
+        const password1 = document.getElementById('id_password1');
+        const password2 = document.getElementById('id_password2');
+
+         function setFeedback(input, messages) {
+            const container = input.closest('.form-floating');
+            const feedback = container.querySelector('.invalid-feedback');
+
+            if (messages.length > 0) {
+                input.classList.add('is-invalid');
+                input.classList.remove('is-valid');
+                feedback.innerHTML = messages.join('<br>');
+                feedback.style.display = 'block';
+            } else {
+                input.classList.remove('is-invalid');
+                // Только если поле НЕ пустое, считаем его валидным
+                if (input.value.trim() !== '') {
+                    input.classList.add('is-valid');
+                } else {
+                    input.classList.remove('is-valid');
+                }
+                feedback.innerHTML = '';
+                feedback.style.display = 'none';
+            }
+        }
+        function validatePasswords() {
+            const val1 = password1.value;
+            const val2 = password2.value;
+
+            // Проверка пароля по требованиям Django
+            const errors1 = [];
+            if (val1.length < 8) errors1.push("Минимум 8 символов");
+            if (!/[A-ZА-Я]/.test(val1)) errors1.push("Добавьте заглавную букву");
+            if (!/[a-zа-я]/.test(val1)) errors1.push("Добавьте строчную букву");
+            if (!/\d/.test(val1)) errors1.push("Добавьте цифру");
+            {#if (!/[^A-Za-z0-9]/.test(val1)) errors1.push("Добавьте спецсимвол");#}
+
+            setFeedback(password1, errors1);
+
+            // Проверка совпадения
+            const errors2 = [];
+            if (val2 && val1 !== val2) {
+                errors2.push("Пароли не совпадают");
+            }
+
+            setFeedback(password2, errors2);
+        }
+
+        const events = ['input', 'change', 'keyup', 'paste'];
+        events.forEach(event => {
+            password1.addEventListener(event, validatePasswords);
+            password2.addEventListener(event, validatePasswords);
+        });
+    });
+
     </script>
 {% endblock %}

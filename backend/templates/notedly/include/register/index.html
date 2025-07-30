@@ -12,7 +12,7 @@
             </div>
         </div>
       <div class="modal-body d-flex flex-column align-items-center justify-content-center">
-          <form method="post" class="form-control border-0 w-75 d-flex flex-column text-center">
+          <form method="post" class="form-control border-0 w-75 d-flex flex-column text-center needs-validation">
               {% csrf_token %}
                 <div class="mb-3 d-flex gap-3">
                     <div class="form-floating">
@@ -29,12 +29,14 @@
                   <label for="id_username">Логин</label>
                 </div>
                 <div class="form-floating mb-3">
-                    {{ register_form.password1 }}
+                  {{ register_form.password1 }}
                   <label for="id_password1">Пароль</label>
+                  <div class="invalid-feedback"></div>
               </div>
               <div class="form-floating mb-3">
-                    {{ register_form.password2 }}
-                  <label for="id_password2">Повторите пароль</label>
+                 {{ register_form.password2 }}
+                 <label for="id_password2">Повторите пароль</label>
+                 <div class="invalid-feedback"></div>
               </div>
               <input type="hidden" name="action" value="register">
               <button type="submit" class="btn btn-primary mb-3" style="padding: 1rem .75rem;">Зарегистрироваться</button>

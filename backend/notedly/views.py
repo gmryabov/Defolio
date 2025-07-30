@@ -231,6 +231,25 @@ def upload_background(request):
         })
 
 
+
+@login_required
+@require_POST
+def update_profile_pic(request):
+    def del_image(p):
+        # Удаляем старое изображение, если оно есть
+            old_path = p.profile_pic.path
+            if os.path.isfile(old_path):
+                os.remove(old_path)
+
+    profile = request.user.profile
+    profile.profile_pic = request.FILES['profile_pic']
+    if profile.profile_pic and profile.profile_pic.name:
+        del_image(profile)
+
+    profile.save()
+    return JsonResponse({'success': True})
+
+
 # профиль
 def profile_view(request, profile_id):
     profile = models.Profile.objects.get(id=profile_id)

@@ -1,5 +1,5 @@
 {% if profile.profile_pic %}
-    <img src="{{ profile.profile_pic.url }}" alt="" width="{{ width }}" height="{{ height }}" class="rounded-circle">
+    <img src="{{ profile.profile_pic.url }}" alt="" width="{{ width }}" height="{{ height }}" class="rounded-circle {{ extra_class }}">
 {% else %}
     <svg xmlns="http://www.w3.org/2000/svg" width="{{ width }}" height="{{ height }}" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
       <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"></path>

@@ -23,8 +23,12 @@
         {% endif %}
     </div>
     <div class="w-100 h-50 position-relative p-3 d-flex flex-column">
-        <div class="position-absolute top-0 start-0 translate-middle rounded-circle bg-body-tertiary" style="left: 75px !important; border:5px solid rgba(var(--bs-tertiary-bg-rgb), var(--bs-bg-opacity)) !important;">
-            {% include 'notedly/include/user_profile.html' with profile=profile width=100 height=100 %}
+        <div class="position-absolute top-0 start-0 translate-middle rounded-circle bg-body-tertiary profile-pic-container" id="profilePic">
+            {% include 'notedly/include/user_profile.html' with profile=profile width=100 height=100 extra_class='profile-pic-img' %}
+            {% if request.user.profile == profile %}
+            <input type="file" id="profilePicInput" style="display: none;">
+            <div class="overlay"><i class="bi bi-image"></i></div>
+            {% endif %}
         </div>
             <div class="ms-auto">
             {% if request.user.profile == profile %}
@@ -253,5 +257,68 @@
             }
         })
     }
+    {% if request.user.profile == profile %}
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('profilePic');
+            const input = document.getElementById('profilePicInput');
+
+            container.addEventListener('click', () => input.click());
+
+            input.addEventListener('change', function () {
+                const file = input.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const existingPreview = container.querySelector('img');
+
+                    if (existingPreview) {
+                        // Есть <img> — просто обновляем src
+                        existingPreview.src = e.target.result;
+                    } else {
+                        // Был <svg> — удаляем его
+                        const svg = container.querySelector('svg');
+                        if (svg) svg.remove();
+
+                        // Создаём <img>
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.alt = 'Profile Picture';
+                        img.className = 'rounded-circle w-100 h-100 object-fit-cover profile-pic-img';
+                        img.id = 'profilePicPreview';
+                        container.insertBefore(img, input);
+                    }
+                };
+                reader.readAsDataURL(file);
+
+                // AJAX отправка
+                const formData = new FormData();
+                formData.append('profile_pic', file);
+
+                fetch("{% url 'ajax_update_profile_pic' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': `{{ csrf_token }}`,
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Upload failed');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        console.log('Изображение успешно загружено');
+                    } else {
+                        console.error('Ошибка: ' + data.error);
+                    }
+                })
+                .catch(err => {
+                    alert('Ошибка загрузки');
+                    console.error(err);
+                });
+            });
+        });
+{% endif %}
 </script>
 {% endblock %}
