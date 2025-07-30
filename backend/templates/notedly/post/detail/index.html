@@ -6,16 +6,8 @@
     <div class="card-body position-relative">
         {% if not post.is_published %}<span class="badge text-bg-danger position-absolute start-50 translate-middle">Не опубликовано</span>{% endif %}
         <div class="d-flex gap-2 align-items-center">
-            <div class="d-flex align-items-start gap-2">
-                {% if post.author.profile_pic %}
-                    <img src="{{ post.author.profile_pic.url }}" alt="" width="42" height="42" class="rounded-circle">
-                {% else %}
-                    <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
-                      <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"></path>
-                      <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"></path>
-                    </svg>
-                {% endif %}
-
+            <a href="{% url 'profile' profile_id=post.author.id %}" class="d-flex align-items-start gap-2 text-decoration-none text-body">
+                {% include 'notedly/include/user_profile.html' with profile=post.author width=42 height=42 %}
                 <div class="d-flex flex-column mb-2">
                     <div class="fs-6">@{{ post.author.user.username }}</div>
                     {% if post.categories.all %}
@@ -25,7 +17,13 @@
                                     <div class="small d-flex">
                                         <img src="{{ category.icon.url }}" alt="" width="15" height="15">{{ category.title }}
                                     </div>
-                                    <div class="text-muted small">{{ post.created_at|timesince }}</div>
+                                    <div class="text-muted small">
+                                        {% if today.date == post.created_at %}
+                                            {{ post.created_at|timesince }} назад
+                                        {% else %}
+                                            {{ post.created_at.date }}
+                                        {% endif %}
+                                    </div>
                                 </div>
                             {% endfor %}
                         </div>
@@ -34,11 +32,11 @@
                             <div class="small d-flex">
                                 <img src="{{ empty_topic.icon.url }}" alt="" width="15" height="15">{{ empty_topic.title }}
                             </div>
-                            <div class="text-muted small">{{ post.created_at|timesince }}</div>
+                            <div class="text-muted small">{{ post.created_at|timesince }} назад</div>
                         </div>
                     {% endif %}
                 </div>
-            </div>
+            </a>
             {% if request.user.is_authenticated and request.user != post.author.user %}
                 <button class="ms-auto btn bg-body btn-sm follow-btn" data-profile-id="{{ post.author.id }}">
                     {% if request.user.profile in post.author.followers.all %}

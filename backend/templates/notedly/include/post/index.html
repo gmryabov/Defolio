@@ -13,7 +13,13 @@
                                     <div class="small d-flex">
                                         <img src="{{ category.icon.url }}" alt="" width="15" height="15">{{ category.title }}
                                     </div>
-                                    <div class="text-muted small">{{ post.created_at|timesince }} назад</div>
+                                    <div class="text-muted small">
+                                        {% if today.date == post.created_at %}
+                                            {{ post.created_at|timesince }} назад
+                                        {% else %}
+                                            {{ post.created_at.date }}
+                                        {% endif %}
+                                    </div>
                                 </div>
                             {% endfor %}
                         </div>
@@ -22,7 +28,13 @@
                             <div class="small d-flex">
                                 <img src="{{ empty_topic.icon.url }}" alt="" width="15" height="15">{{ empty_topic.title }}
                             </div>
-                            <div class="text-muted small">{{ post.created_at|timesince }}</div>
+                            <div class="text-muted small">
+                                {% if today.date == post.created_at %}
+                                    {{ post.created_at|timesince }} назад
+                                {% else %}
+                                    {{ post.created_at.date }}
+                                {% endif %}
+                            </div>
                         </div>
                     {% endif %}
                 </div>

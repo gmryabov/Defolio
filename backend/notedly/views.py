@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -16,22 +17,7 @@ from .models import Post
 # Главная
 def home(request):
     if request.method == 'POST':
-        action = request.POST.get('action')
-        if action == 'login':
-            user = _login(request)
-            # Если пользователь найден, выполняем вход
-            if user is not None and user.is_active:
-                login(request, user)
-                return redirect('notedly')
-            # else:
-            #     return JsonResponse({"error": login_form.errors, "data": request.POST}, status=400)
-        elif action == 'register':
-            _register(request)
-
-        elif action == 'new_post':
-            _new_post(request)
-
-        return redirect('notedly')
+        _universal_post_method(request)
 
     if 'category' in request.GET:
         posts = models.Post.objects.filter(
@@ -56,6 +42,7 @@ def _get_context(request):
         'login_form': LoginForm(),
         'users': models.Profile.objects.annotate(followers_count=Count('followers')).order_by('-followers_count')[:3],
         'top_comments': models.Comment.objects.annotate(likes_count=Count('likes')).order_by('-likes_count')[:10],
+        'today': datetime.today(),
     }
     return context
 
@@ -81,6 +68,7 @@ def _new_post(request):
             post.categories.add(category)
         except models.Category.DoesNotExist:
             pass
+    return post
 
 
 def _register(request):
@@ -119,6 +107,25 @@ def _login(request):
                 user = None  # Если пользователь не найден по email
         return user
     return None
+
+
+def _universal_post_method(request):
+    action = request.POST.get('action')
+    if action == 'login':
+        user = _login(request)
+        # Если пользователь найден, выполняем вход
+        if user is not None and user.is_active:
+            login(request, user)
+            return redirect(f'{request.META.get("PATH_INFO")}')
+    elif action == 'register':
+        _register(request)
+        return redirect(f'{request.META.get("PATH_INFO")}')
+
+    elif action == 'new_post':
+        post = _new_post(request)
+        return redirect('post_detail', post_slug=post.slug)
+    return redirect('notedly')
+
 
 # выход
 def logout_view(request):
@@ -234,13 +241,7 @@ def profile_view(request, profile_id):
     }
 
     if request.method == 'POST':
-        action = request.POST.get('action')
-        if action == 'new_post':
-            _new_post(request)
-            return redirect('profile')
-        elif action == 'register':
-            _register(request)
-            return redirect('notedly')
+        _universal_post_method(request)
 
     return render(request, 'notedly/profile/index.html', context=context | _get_context(request))
 
@@ -252,6 +253,10 @@ def post_detail_view(request, post_slug):
     .exclude(id=post.id) \
     .distinct() \
     .order_by('-created_at')
+
+    if request.method == 'POST':
+        _universal_post_method(request)
+
     context = {
         'post': post,
         'title': post.title,
