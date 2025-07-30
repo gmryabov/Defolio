@@ -145,7 +145,7 @@ MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
-CSRF_TRUSTED_ORIGINS = ['http://188.225.43.95/', 'https://gmryabov.online/', 'https://gmryabov.ru/']
+CSRF_TRUSTED_ORIGINS = ['http://188.225.43.95', 'https://gmryabov.online', 'https://gmryabov.ru']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
