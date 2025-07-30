@@ -15,13 +15,21 @@
                     </div>
                 </a>
                 {% if request.user.profile != follower %}
-                <button class="ms-auto btn btn-sm border follow-btn" data-profile-id="{{ follower.id }}">
-                    {% if profile in follower.followers.all %}
-                        Отписаться
+                    {% if request.user.is_authenticated %}
+                        <button class="ms-auto btn btn-sm border bg-body follow-btn" data-profile-id="{{ follower.id }}">
                     {% else %}
-                        Подписаться
+                        <button class="ms-auto btn btn-sm border bg-body" data-bs-toggle="modal" data-bs-target="#loginModal">
                     {% endif %}
-                </button>
+                    {% if not request.user.is_authenticated %}
+                        Подписаться
+                    {% else %}
+                        {% if profile in follower.followers.all %}
+                            Отписаться
+                        {% else %}
+                            Подписаться
+                        {% endif %}
+                    {% endif %}
+                    </button>
                 {% endif %}
             </div>
         {% endfor %}

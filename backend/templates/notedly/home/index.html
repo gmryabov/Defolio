@@ -109,7 +109,11 @@
                                         </div>
                                     </div>
                                     <p class="m-0 smaller">{{ comment.content }}</p>
-                                    <div class="border-0 px-0 py-1 rounded-pill text-decoration-none text-body like-comment-btn" data-post-id="{{ post.id }}" data-comment-id="{{ comment.id }}" style="width: auto">
+                                {% if request.user.is_authenticated %}
+                                    <div class="border-0 px-0 py-1 rounded-pill text-decoration-none text-body like-comment-btn w-auto" data-post-id="{{ post.id }}" data-comment-id="{{ comment.id }}">
+                                {% else %}
+                                    <div class="border-0 px-0 py-1 rounded-pill text-decoration-none text-body w-auto" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                {% endif %}
                                         {% if user.profile in comment.likes.all %}
                                         <i class="bi bi-heart-fill"></i>
                                         {% else %}
@@ -250,7 +254,7 @@
         // Применяем к кнопкам лайков у комментариев
         setupToggleButton('.like-comment-btn', 'bi-heart', 'like-comment-count');
     });
-    document.querySelectorAll('.edit-btn').forEach(button => {
+    document.querySelectorAll('.edit-post-btn').forEach(button => {
         button.addEventListener('click', function () {
             const postId = this.dataset.postId;
             const title = this.dataset.title;

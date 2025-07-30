@@ -17,7 +17,6 @@
                 {% endif %}
 
                 <div class="d-flex flex-column mb-2">
-{#                                    <a href="#" class="d-flex flex-column mb-2 text-decoration-none text-body">#}
                     <div class="fs-6">@{{ post.author.user.username }}</div>
                     {% if post.categories.all %}
                         <div class="small">
@@ -76,7 +75,11 @@
         <p class="card-text">{{ post.content|linebreaksbr }}</p>
         <div class="card-footer bg-body-tertiary px-0 mt-3">
             <ul class="list-group list-group-horizontal gap-1">
-                <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill text-decoration-none text-body like-btn" data-post-id="{{ post.id }}" style="width: auto">
+                {% if request.user.is_authenticated %}
+                    <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill text-decoration-none text-body like-btn w-auto" data-post-id="{{ post.id }}">
+                {% else %}
+                    <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill text-decoration-none text-body like-btn w-auto" data-bs-toggle="modal" data-bs-target="#loginModal">
+                {% endif %}
                     {% if user.profile in post.likes.all %}
                     <i class="bi bi-heart-fill"></i>
                     {% else %}
@@ -84,7 +87,11 @@
                     {% endif %}
                     <span class="like-count">{{ post.likes.count }}</span>
                 </li>
-              <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill text-decoration-none text-body bookmark-btn" data-post-id="{{ post.id }}" style="width: auto">
+              {% if request.user.is_authenticated %}
+                    <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill text-decoration-none text-body bookmark-btn w-auto" data-post-id="{{ post.id }}">
+                {% else %}
+                    <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill text-decoration-none text-body bookmark-btn w-auto" data-bs-toggle="modal" data-bs-target="#loginModal">
+                {% endif %}
                     {% if user.profile in post.bookmarks.all %}
                     <i class="bi bi-bookmark-fill"></i>
                     {% else %}

@@ -39,7 +39,7 @@
                 <div class="ms-auto dropdown">
                     <button class="btn dropdown-toggle drop-without" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots"></i></button>
                     <ul class="dropdown-menu">
-                      <li><a class="dropdown-item edit-btn"
+                      <li><a class="dropdown-item edit-post-btn"
                                 data-post-id="{{ post.id }}"
                                 data-title="{{ post.title|safe }}"
                                 data-content="{{ post.content|safe }}"
@@ -68,7 +68,11 @@
         </a>
         <div class="card-footer bg-body-tertiary px-0 mt-3">
             <ul class="list-group list-group-horizontal gap-1">
-                <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill text-decoration-none text-body like-btn" data-post-id="{{ post.id }}" style="width: auto">
+                {% if request.user.is_authenticated %}
+                    <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill text-decoration-none text-body like-btn w-auto" data-post-id="{{ post.id }}">
+                {% else %}
+                    <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill text-decoration-none text-body like-btn w-auto" data-bs-toggle="modal" data-bs-target="#loginModal">
+                {% endif %}
                     {% if user.profile in post.likes.all %}
                     <i class="bi bi-heart-fill"></i>
                     {% else %}
@@ -76,7 +80,11 @@
                     {% endif %}
                     <span class="like-count">{{ post.likes.count }}</span>
                 </li>
-                <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill text-decoration-none text-body bookmark-btn" data-post-id="{{ post.id }}" style="width: auto">
+                {% if request.user.is_authenticated %}
+                    <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill text-decoration-none text-body bookmark-btn w-auto" data-post-id="{{ post.id }}">
+                {% else %}
+                    <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill text-decoration-none text-body bookmark-btn w-auto" data-bs-toggle="modal" data-bs-target="#loginModal">
+                {% endif %}
                       {% if user.profile in post.bookmarks.all %}
                       <i class="bi bi-bookmark-fill"></i>
                       {% else %}

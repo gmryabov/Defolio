@@ -32,7 +32,11 @@
                     <i class="bi bi-gear"></i>
                 </button>
             {% else %}
-                <button class="ms-auto btn btn-sm bg-body follow-btn" data-profile-id="{{ profile.id }}">
+                {% if request.user.is_authenticated %}
+                    <button class="ms-auto btn btn-sm bg-body follow-btn" data-profile-id="{{ profile.id }}">
+                {% else %}
+                    <button class="ms-auto btn btn-sm bg-body" data-bs-toggle="modal" data-bs-target="#loginModal">
+                {% endif %}
                     {% if request.user.profile in profile.followers.all %}
                         Отписаться
                     {% else %}
