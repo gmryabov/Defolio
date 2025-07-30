@@ -78,7 +78,9 @@ body {
     border-bottom-left-radius: 0 !important;
     border-bottom-right-radius: 0 !important;
     background-repeat: no-repeat, repeat;
+    background-position-x: center;
 }
+
 .branch {
   --color-branch: rgba(var(--bs-secondary-rgb),1);
     --width: var(26px, 26px);
