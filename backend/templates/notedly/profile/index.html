@@ -1,0 +1,253 @@
+{% extends 'notedly/home/index.html' %}
+{% load static %}
+{% load custom_filters %}
+
+
+{% block notedly-body %}
+<div class="bg-body-tertiary d-flex flex-column rounded" style="height: 420px;">
+    <div class="bg-body-secondary h-50 w-100 rounded d-flex position-relative" id="backgroundPreview"
+         style="background-image: url({% if profile.background %}{{ profile.background.url }}{% endif %});">
+        {% if request.user.profile == profile %}
+        <button type="button" class="btn bg-body btn-sm upload-btn position-absolute top-50 start-50 translate-middle" id="uploadBtn" style="{% if profile.background %}display: none{% endif %}">
+            <i class="bi bi-image-fill pe-1"></i> Добавить обложку
+        </button>
+        <input type="file" id="fileInput" style="display: none;">
+
+        <div class="dropdown position-absolute bottom-0 end-0 m-2" id="dropdownMenuButton" style="display: none">
+            <button class="btn btn-sm bg-body dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Редактировать обложку</button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item upload-btn" href="#">Изменить</a></li>
+                <li><a class="dropdown-item" href="#" id="delBtn">Удалить</a></li>
+              </ul>
+        </div>
+        {% endif %}
+    </div>
+    <div class="w-100 h-50 position-relative p-3 d-flex flex-column">
+        <div class="position-absolute top-0 start-0 translate-middle rounded-circle bg-body-tertiary" style="left: 75px !important; border:5px solid rgba(var(--bs-tertiary-bg-rgb), var(--bs-bg-opacity)) !important;">
+            {% include 'notedly/include/user_profile.html' with profile=profile width=100 height=100 %}
+        </div>
+            <div class="ms-auto">
+            {% if request.user.profile == profile %}
+                <button class="btn bg-body">
+                    <i class="bi bi-gear"></i>
+                </button>
+            {% else %}
+                <button class="ms-auto btn btn-sm bg-body follow-btn" data-profile-id="{{ profile.id }}">
+                    {% if request.user.profile in profile.followers.all %}
+                        Отписаться
+                    {% else %}
+                        Подписаться
+                    {% endif %}
+                </button>
+            {% endif %}
+            </div>
+        <h3 class="m-0">{{ profile.user.first_name }}</h3>
+        <p class="text-muted m-0">С {{ profile.user.date_joined.date }}</p>
+        {% if profile.bio %}
+        	<p class="m-0">{{ profile.bio }}</p>
+        {% endif %}
+        <div class="d-flex flex-row gap-3">
+            <a href="#" class="text-decoration-none text-body" data-bs-toggle="modal" data-bs-target="#followersModal">{{ profile.followers.count|follower_with_suffix }}</a>
+            {% include 'notedly/include/profile/followers.html' %}
+            <a href="#" class="text-decoration-none text-body" data-bs-toggle="modal" data-bs-target="#followingModal">{{ profile.following.count|following_with_suffix }}</a>
+            {% include 'notedly/include/profile/following.html' %}
+        </div>
+        <ul class="nav nav-underline position-absolute bottom-0 start-0 ms-3 d-flex flex-row gap-3">
+          <li class="nav-item">
+            <a class="nav-link active" href="#" onclick="showPostsBlock(this)">Посты</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showCommentsBlock(this)">Комментарии</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showBookmarksBlock(this)">Закладки</a>
+          </li>
+        </ul>
+    </div>
+</div>
+    <div id="post-body">
+        <div class="d-flex flex-column gap-3">
+            {% for post in profile.post_set.all %}
+                {% if not post.is_deleted %}
+                    {% include 'notedly/include/post/index.html' with post=post %}
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    <div id="comment-body" style="display: none;">
+        <div class="d-flex flex-column gap-3">
+            {% for comment in comments %}
+                {% if not comment.is_deleted and comment.author == profile %}
+                <div class="p-3 bg-body-tertiary rounded">
+                    <div class="d-flex align-items-start gap-2">
+                    {% include 'notedly/include/user_profile.html' with profile=comment.author width=35 height=35 %}
+                    <div class="d-flex flex-column mb-2">
+                        <div class="fs-6">@{{ comment.author }}</div>
+                            <div class="text-muted small">в посте <a class="text-decoration-none text-body" href="{% url 'post_detail' post_slug=comment.post.slug %}">{{ comment.post.title }}</a> {{ comment.created_at|timesince }} назад</div>
+                        </div>
+                    </div>
+                    <p class="m-0">{{ comment.content }}</p>
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="{% url 'post_detail' post_slug=comment.post.slug %}#comment-{{ comment.id }}" class="text-muted text-decoration-none" style="font-size: smaller">Ответить</a>
+                        <div class="border-0 px-2 py-1 rounded-pill text-decoration-none text-body like-comment-btn" data-post-id="{{ post.id }}" data-comment-id="{{ comment.id }}" style="width: auto">
+                            {% if user.profile in comment.likes.all %}
+                            <i class="bi bi-heart-fill"></i>
+                            {% else %}
+                            <i class="bi bi-heart"></i>
+                            {% endif %}
+                            <span class="like-comment-count">{{ comment.likes.count }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    <div id="bookmarks-body" style="display: none">
+        <div class="d-flex flex-column gap-3">
+            {% for bookmark in profile.bookmarks.all %}
+                {% if not bookmark.is_deleted and bookmark.is_published %}
+                    {% include 'notedly/include/post/index.html' with post=bookmark %}
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+<script>
+    {% if request.user.profile == profile %}
+    let btns = document.querySelectorAll('.upload-btn')
+    btns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault()
+            document.getElementById('fileInput').click();
+        })
+    })
+
+    document.getElementById('fileInput').addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        const uploadBtn = document.getElementById('uploadBtn')
+        const dropdownMenuButton = document.getElementById('dropdownMenuButton')
+
+        const formData = new FormData();
+        formData.append('background', file);
+        formData.append('action', 'upload');
+
+        fetch("{% url 'ajax_upload_background' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const preview = document.getElementById('backgroundPreview');
+                if (preview) preview.style.backgroundImage = `url("${data.image_url}")`;
+                uploadBtn.style.display = 'none';
+                dropdownMenuButton.style.visibility = 'visible';
+            } else {
+                alert("Ошибка загрузки");
+            }
+        });
+    });
+
+    document.getElementById('delBtn').addEventListener('click', (e) => {
+        e.preventDefault()
+        const uploadBtn = document.getElementById('uploadBtn')
+        const dropdownMenuButton = document.getElementById('dropdownMenuButton')
+
+        const formData = new FormData();
+        formData.append('action', 'delete');
+
+        fetch("{% url 'ajax_upload_background' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const preview = document.getElementById('backgroundPreview');
+                if (preview) preview.style.backgroundImage = ``;
+                uploadBtn.style.display = 'block';
+                dropdownMenuButton.style.visibility = 'hidden';
+            } else {
+                alert("Ошибка загрузки");
+            }
+        });
+    })
+    const backgroundPreview = document.getElementById('backgroundPreview');
+    const dropdownMenuButton = document.getElementById('dropdownMenuButton');
+    const uploadBtn = document.getElementById('uploadBtn');
+
+    backgroundPreview.addEventListener('mouseenter', () => {
+        const uploadBtnVisible = window.getComputedStyle(uploadBtn).display !== 'none';
+
+        if (!uploadBtnVisible) {
+            dropdownMenuButton.style.display = 'block';
+        }
+    });
+
+    backgroundPreview.addEventListener('mouseleave', () => {
+        dropdownMenuButton.style.display = 'none';
+    });
+    {% endif %}
+    function showPostsBlock(e) {
+        const postsBlock = document.getElementById('post-body');
+        const commentsBlock = document.getElementById('comment-body');
+        const bookmarksBlock = document.getElementById('bookmarks-body');
+
+        if (postsBlock.style.display === 'none') {
+            postsBlock.style.display = 'block';
+            commentsBlock.style.display = 'none';
+            bookmarksBlock.style.display = 'none';
+        }
+        {# Ставим активность нажатому элементу #}
+        document.querySelectorAll('.nav-link').forEach((item) => {
+            if (item.classList.contains('active')) {
+                item.classList.remove('active');
+                e.classList.add('active');
+            }
+        })
+    }
+    function showCommentsBlock(e) {
+        const postsBlock = document.getElementById('post-body');
+        const commentsBlock = document.getElementById('comment-body');
+        const bookmarksBlock = document.getElementById('bookmarks-body');
+
+        if (commentsBlock.style.display === 'none') {
+            postsBlock.style.display = 'none';
+            commentsBlock.style.display = 'block';
+            bookmarksBlock.style.display = 'none';
+        }
+        {# Ставим активность нажатому элементу #}
+        document.querySelectorAll('.nav-link').forEach((item) => {
+            if (item.classList.contains('active')) {
+                item.classList.remove('active');
+                e.classList.add('active');
+            }
+        })
+    }
+    function showBookmarksBlock(e) {
+        const postsBlock = document.getElementById('post-body');
+        const commentsBlock = document.getElementById('comment-body');
+        const bookmarksBlock = document.getElementById('bookmarks-body');
+
+        if (bookmarksBlock.style.display === 'none') {
+            postsBlock.style.display = 'none';
+            commentsBlock.style.display = 'none';
+            bookmarksBlock.style.display = 'block';
+        }
+        {# Ставим активность нажатому элементу #}
+        document.querySelectorAll('.nav-link').forEach((item) => {
+            if (item.classList.contains('active')) {
+                item.classList.remove('active');
+                e.classList.add('active');
+            }
+        })
+    }
+</script>
+{% endblock %}

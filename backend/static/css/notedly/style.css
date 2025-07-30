@@ -1,0 +1,108 @@
+.bitcount-grid-single-100 {
+  font-family: "Bitcount Grid Single", system-ui;
+  font-optical-sizing: auto;
+  font-weight: 100;
+  font-style: normal;
+  font-variation-settings:
+    "slnt" 0,
+    "CRSV" 0.5,
+    "ELSH" 0,
+    "ELXP" 0;
+}
+.bitcount-grid-single-200 {
+  font-family: "Bitcount Grid Single", system-ui;
+  font-optical-sizing: auto;
+  font-weight: 200;
+  font-style: normal;
+  font-variation-settings:
+    "slnt" 0,
+    "CRSV" 0.5,
+    "ELSH" 0,
+    "ELXP" 0;
+}
+.bitcount-grid-single-300 {
+  font-family: "Bitcount Grid Single", system-ui;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  font-style: normal;
+  font-variation-settings:
+    "slnt" 0,
+    "CRSV" 0.5,
+    "ELSH" 0,
+    "ELXP" 0;
+}
+
+.bitcount-grid-single-400 {
+  font-family: "Bitcount Grid Single", system-ui;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings:
+    "slnt" 0,
+    "CRSV" 0.5,
+    "ELSH" 0,
+    "ELXP" 0;
+}
+.bitcount-grid-single-500 {
+  font-family: "Bitcount Grid Single", system-ui;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+  font-variation-settings:
+    "slnt" 0,
+    "CRSV" 0.5,
+    "ELSH" 0,
+    "ELXP" 0;
+}
+.list-group-item {
+  cursor: pointer;
+}
+.drop-without:after {
+  display: none;
+}
+
+html {
+  overflow: hidden;
+  height: 100%;
+}
+body {
+  overflow-y: auto;
+  height: 100vh;
+}
+
+/*#backgroundPreview:hover #dropdownMenuButton {*/
+/*    display: block !important;*/
+/*}*/
+
+#backgroundPreview {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    background-repeat: no-repeat, repeat;
+}
+.branch {
+  --color-branch: rgba(var(--bs-secondary-rgb),1);
+    --width: var(26px, 26px);
+    --branch-stroke: 1px;
+    --arc-width: 18px;
+    --arc-height: 31px;
+    --arc-radius: 8px;
+    width: 26px;
+    border-left: 1px solid transparent;
+    pointer-events: none;
+    position: absolute;
+    left: 0px;
+}
+
+.arc {
+    width: 20px;
+    height: 30px;
+    border: solid rgba(var(--bs-secondary-rgb),1);
+    border-width: 0 0 1px 1px;
+    border-bottom-left-radius: 8px;
+    margin-left: calc(1px * -1);
+    pointer-events: none;
+}
+
+.smaller {
+  font-size: smaller;
+}

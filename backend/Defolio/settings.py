@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'news.apps.WebConfig',
+    'notedly',
 ]
 
 MIDDLEWARE = [
@@ -55,7 +55,7 @@ ROOT_URLCONF = 'Defolio.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'backend/templates']
+        'DIRS': [BASE_DIR / 'templates']
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -137,11 +137,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_URL = "static/"
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATIC_ROOT = BASE_DIR / '/staticfiles/'
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'static/media')
+MEDIA_URL = 'media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 CSRF_TRUSTED_ORIGINS = ['http://188.225.43.95/', 'https://gmryabov.online/', 'https://gmryabov.ru/']
@@ -155,5 +156,5 @@ CELERY_RESULT_BACKEND = 'redis://redis:6379/1'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_IMPORTS = [
-    'news.tasks',
+    'notedly.tasks',
 ]

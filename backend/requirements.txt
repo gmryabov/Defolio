@@ -23,3 +23,5 @@ vine==5.1.0
 wcwidth==0.2.13
 psycopg2-binary==2.9.10
 redis==6.2.0
+pillow==11.3.0
+python-slugify==8.0.4

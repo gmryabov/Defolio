@@ -1,0 +1,51 @@
+<div class="modal fade" id="registerModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+{#        <h1 class="modal-title fs-5" id="registerModalLabel">Modal title</h1>#}
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+        <div class="mt-5 mb-4 text-center">
+            <div class="font-weight-bold fs-3">Регистрация</div>
+{#            <div class="">Нет аккаунта? <a href="#" class="text-decoration-none">Регистрация</a></div>#}
+        </div>
+      <div class="modal-body d-flex flex-column align-items-center justify-content-center">
+          <form method="post" class="form-control border-0 w-75 d-flex flex-column text-center">
+              {% csrf_token %}
+                <div class="mb-3 d-flex gap-3">
+                    <div class="form-floating">
+                      {{ register_form.first_name }}
+                      <label for="id_username">Имя</label>
+                    </div>
+                    <div class="form-floating">
+                      {{ register_form.last_name }}
+                      <label for="id_username">Фамилия</label>
+                    </div>
+                </div>
+                <div class="form-floating mb-3">
+                  {{ register_form.username }}
+                  <label for="id_username">Логин</label>
+                </div>
+                <div class="form-floating mb-3">
+                    {{ register_form.password1 }}
+{#                  <input type="password" class="form-control" id="floatingPassword" placeholder="Password">#}
+                  <label for="id_password1">Пароль</label>
+              </div>
+              <div class="form-floating mb-3">
+                    {{ register_form.password2 }}
+{#                  <input type="password" class="form-control" id="floatingPassword" placeholder="Password">#}
+                  <label for="id_password2">Повторите пароль</label>
+              </div>
+              <input type="hidden" name="action" value="register">
+              <button type="submit" class="btn btn-primary mb-3" style="padding: 1rem .75rem;">Зарегистрироваться</button>
+
+          </form>
+      </div>
+    <div class="mt-4 mb-5"></div>
+{#      <div class="modal-footer">#}
+{#        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>#}
+{#        <button type="button" class="btn btn-primary">Understood</button>#}
+{#      </div>#}
+    </div>
+  </div>
+</div>

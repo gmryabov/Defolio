@@ -1,0 +1,399 @@
+{% extends 'notedly/home/index.html' %}
+{% load static %}
+
+{% block notedly-body %}
+<div class="card bg-body-tertiary border-0" id="post-{{ post.id }}" {% if not post.is_published and post.author != request.user.profile %}style="display: none"{% endif %}>
+    <div class="card-body position-relative">
+        {% if not post.is_published %}<span class="badge text-bg-danger position-absolute start-50 translate-middle">Не опубликовано</span>{% endif %}
+        <div class="d-flex gap-2 align-items-center">
+            <div class="d-flex align-items-start gap-2">
+                {% if post.author.profile_pic %}
+                    <img src="{{ post.author.profile_pic.url }}" alt="" width="42" height="42" class="rounded-circle">
+                {% else %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                      <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"></path>
+                      <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"></path>
+                    </svg>
+                {% endif %}
+
+                <div class="d-flex flex-column mb-2">
+{#                                    <a href="#" class="d-flex flex-column mb-2 text-decoration-none text-body">#}
+                    <div class="fs-6">@{{ post.author.user.username }}</div>
+                    {% if post.categories.all %}
+                        <div class="small">
+                            {% for category in post.categories.all %}
+                                <div class="small d-flex gap-2">
+                                    <div class="small d-flex">
+                                        <img src="{{ category.icon.url }}" alt="" width="15" height="15">{{ category.title }}
+                                    </div>
+                                    <div class="text-muted small">{{ post.created_at|timesince }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="small d-flex gap-2">
+                            <div class="small d-flex">
+                                <img src="{{ empty_topic.icon.url }}" alt="" width="15" height="15">{{ empty_topic.title }}
+                            </div>
+                            <div class="text-muted small">{{ post.created_at|timesince }}</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% if request.user.is_authenticated and request.user != post.author.user %}
+                <button class="ms-auto btn bg-body btn-sm follow-btn" data-profile-id="{{ post.author.id }}">
+                    {% if request.user.profile in post.author.followers.all %}
+                        Отписаться
+                    {% else %}
+                        Подписаться
+                    {% endif %}
+                </button>
+            {% elif request.user == post.author.user %}
+                <div class="ms-auto dropdown">
+                    <button class="btn dropdown-toggle drop-without" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots"></i></button>
+                    <ul class="dropdown-menu">
+                      <li><a class="dropdown-item edit-btn"
+                                data-post-id="{{ post.id }}"
+                                data-title="{{ post.title|safe }}"
+                                data-content="{{ post.content|safe }}"
+                                data-category-id="{{ post.categories.first.id }}"
+                             href="#">Редактировать</a></li>
+                      <li>
+                          <a class="dropdown-item publish-btn" href="#" data-post-id="{{ post.id }}">
+                            {% if post.is_published %}
+                                Снять с публикации
+                            {% else %}
+                                Опубликовать
+                            {% endif %}
+                          </a>
+                      </li>
+                      <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#deleteModal{{ post.id }}">Удалить</a></li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+        <h5 class="card-title fs-5">{{ post.title }}</h5>
+        <p class="card-text">{{ post.content|linebreaksbr }}</p>
+        <div class="card-footer bg-body-tertiary px-0 mt-3">
+            <ul class="list-group list-group-horizontal gap-1">
+                <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill text-decoration-none text-body like-btn" data-post-id="{{ post.id }}" style="width: auto">
+                    {% if user.profile in post.likes.all %}
+                    <i class="bi bi-heart-fill"></i>
+                    {% else %}
+                    <i class="bi bi-heart"></i>
+                    {% endif %}
+                    <span class="like-count">{{ post.likes.count }}</span>
+                </li>
+              <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill text-decoration-none text-body bookmark-btn" data-post-id="{{ post.id }}" style="width: auto">
+                    {% if user.profile in post.bookmarks.all %}
+                    <i class="bi bi-bookmark-fill"></i>
+                    {% else %}
+                    <i class="bi bi-bookmark"></i>
+                    {% endif %}
+                    <span class="bookmark-count">{{ post.bookmarks.count }}</span>
+              </li>
+{#              <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill" style="width: auto">#}
+{#                  <a href="#comments" class="text-decoration-none text-body">#}
+{#                      <i class="bi bi-chat"></i> {{ post.comments.count }}#}
+{#                  </a>#}
+{#              </li>#}
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="bg-body-tertiary p-3 rounded" id="comments">
+    <label class="card-title fs-5 mb-3" for="commentArea">Оставить комментарий</label>
+    <div class="position-relative">
+        <textarea class="form-control border-0" id="commentArea" rows="4" placeholder="Комментарий..."></textarea>
+        <button id="submitBtn" class="position-absolute bottom-0 end-0 btn btn-primary me-2 mb-2 d-none">Отправить</button>
+    </div>
+    <div id="comments-container" class="pt-3 d-flex flex-column gap-3">
+    {% for comment in post.comments.all %}
+        {% if not comment.parent %}
+            {% include 'notedly/include/post/comment.html' with comment=comment %}
+        {% endif %}
+    {% endfor %}
+    </div>
+</div>
+{% include 'notedly/include/post/confirm_modal.html' with id=post.id %}
+<script>
+    $(document).ready(function () {
+    // Показываем кнопку при вводе текста
+    $('#commentArea').on('input', function () {
+        if ($(this).val().trim()) {
+            $('#submitBtn').removeClass('d-none');
+        } else {
+            $('#submitBtn').addClass('d-none');
+        }
+    });
+
+    // Обработка нажатия на кнопку "Отправить"
+    $('#submitBtn').on('click', function (e) {
+        e.preventDefault();
+
+        const content = $('#commentArea').val().trim();
+        const postId = {{ post.id }};
+        const csrfToken = '{{ csrf_token }}';
+
+        if (!content) return;
+
+        $.ajax({
+            url: '{% url "ajax_create_comment" %}',
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken },
+            data: {
+                content: content,
+                post_id: postId
+            },
+            success: function (response) {
+                $('#commentArea').val('');
+                $('#submitBtn').addClass('d-none');
+                location.reload();
+            },
+            error: function (xhr, status, error) {
+                console.error('Ошибка:', error);
+                alert('Не удалось отправить комментарий.');
+            }
+        });
+    });
+});
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.reply-link').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            const replyTo = this.dataset.replyTo;
+            const commentId = this.dataset.commentId;
+
+            // Удалим уже существующий блок ответа, если есть
+            const existingReplyBox = document.querySelector('.reply-box');
+            if (existingReplyBox) {
+                existingReplyBox.remove();
+            }
+
+            // Получим ссылку на контейнер всех комментариев
+            const commentsContainer = document.getElementById('comments-container');
+
+            // Создадим внешний контейнер блока
+            const replyBox = document.createElement('div');
+            replyBox.className = 'reply-box';
+
+            // Создаем внутреннюю HTML-структуру
+            replyBox.innerHTML = `
+                <div class="position-relative mt-2">
+                    <textarea class="form-control border-0" id="replyCommentArea" rows="4" placeholder="Комментарий...">@${replyTo}, </textarea>
+                    <div class="buttons position-absolute bottom-0 end-0 me-2 mb-2">
+                        <button id="cancelReplyBtn" class="btn btn-secondary">Отменить</button>
+                        <button id="replyBtn" class="btn btn-primary reply-link">Отправить</button>
+                    </div>
+                </div>
+            `;
+
+            // Добавим в конец контейнера
+            commentsContainer.appendChild(replyBox);
+
+            // Назначим обработчик на кнопку "Отменить"
+            replyBox.querySelector('#cancelReplyBtn').addEventListener('click', function () {
+                replyBox.remove();
+            });
+        });
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.reply-link').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            const replyTo = this.dataset.replyTo;
+            const commentId = this.dataset.commentId;
+            const postId = this.closest('[data-post-id]')?.dataset.postId;
+
+            // Удалим уже существующий reply-box
+            const existingReplyBox = document.querySelector('.reply-box');
+            if (existingReplyBox) existingReplyBox.remove();
+
+            // Найдём контейнер для ответов
+            let repliesContainer = document.getElementById(`replies-${commentId}`);
+            if (!repliesContainer) {
+                // Если контейнера нет — создаём
+                const parentComment = document.getElementById(`comment-${commentId}`);
+                repliesContainer = document.createElement('div');
+                repliesContainer.className = 'replies ps-4';
+                repliesContainer.id = `replies-${commentId}`;
+                parentComment.appendChild(repliesContainer);
+            }
+
+            const replyBox = document.createElement('div');
+            replyBox.className = 'reply-box mt-2';
+
+            replyBox.innerHTML = `
+                <div class="position-relative">
+                    <textarea class="form-control border-0" id="replyCommentArea" rows="4" placeholder="Комментарий...">@${replyTo}, </textarea>
+                    <div class="buttons position-absolute bottom-0 end-0 me-2 mb-2">
+                        <button id="cancelReplyBtn" class="btn btn-secondary">Отменить</button>
+                        <button id="replyBtn" class="btn btn-primary">Отправить</button>
+                    </div>
+                </div>
+            `;
+
+            repliesContainer.appendChild(replyBox);
+
+            replyBox.querySelector('#cancelReplyBtn').addEventListener('click', function () {
+                replyBox.remove();
+            });
+
+            replyBox.querySelector('#replyBtn').addEventListener('click', function () {
+                const content = replyBox.querySelector('#replyCommentArea').value.trim();
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                if (!content) return;
+
+                fetch('{% url 'ajax_create_comment' %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: new URLSearchParams({
+                        content: content,
+                        post_id: postId,
+                        parent_id: commentId
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const newComment = document.createElement('div');
+                        newComment.className = 'pt-3';
+                        newComment.id = `comment-${data.comment_id}`;
+                        newComment.innerHTML = `
+                            <div class="d-flex align-items-center gap-2">
+                                ${data.profile_pic_url ?
+                                    `<img src="${data.profile_pic_url}" alt="" width="35" height="35" class="rounded-circle">` :
+                                    `<svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"></path>
+                                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"></path>
+                                    </svg>`}
+                                <div class="d-flex flex-column">
+                                    <div class="fs-6">@${data.username}</div>
+                                    <div class="text-secondary" style="font-size: small">${data.created_at}</div>
+                                </div>
+                            </div>
+                            <p class="m-0">${data.content}</p>
+                            <a href="#" class="text-muted text-decoration-none reply-link" data-comment-id="${data.comment_id}" data-reply-to="${data.username}" style="font-size: smaller">Ответить</a>
+                            <div class="replies ps-4" id="replies-${data.comment_id}"></div>
+                        `;
+
+                        repliesContainer.appendChild(newComment);
+                        replyBox.remove();
+
+                        // Повесить обработку на новую ссылку "Ответить"
+                        newComment.querySelector('.reply-link').addEventListener('click', function (e) {
+                            e.preventDefault();
+                            location.reload(); // Или переинициализируй через ту же функцию
+                        });
+                    } else {
+                        alert('Ошибка при создании комментария');
+                    }
+                });
+            });
+        });
+    });
+});
+document.addEventListener('DOMContentLoaded', function () {
+    // Обработка редактирования
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
+            const commentId = this.dataset.commentId;
+            const commentBody = this.closest('.comment-body');
+            const originalText = commentBody.querySelector('p').innerText;
+
+            // Сохраняем оригинальный <p> как data для восстановления
+            commentBody.dataset.originalText = originalText;
+
+            // Заменяем <p> на textarea
+            commentBody.querySelector('p').outerHTML = `
+                <div class="position-relative comment-edit-area">
+                    <textarea class="form-control border-0" rows="4" placeholder="Комментарий...">${originalText}</textarea>
+                    <div class="buttons position-absolute bottom-0 end-0 me-2 mb-2">
+                        <button class="btn btn-secondary cancel-edit-btn">Отменить</button>
+                        <button class="btn btn-primary confirm-edit-btn" data-comment-id="${commentId}">Изменить</button>
+                    </div>
+                </div>`;
+        });
+    });
+
+    // Делегируем события "Изменить" и "Отменить"
+    document.addEventListener('click', function (e) {
+        // Отмена редактирования
+        if (e.target.classList.contains('cancel-edit-btn')) {
+            e.preventDefault();
+            const commentBody = e.target.closest('.comment-body');
+            const originalText = commentBody.dataset.originalText;
+
+            commentBody.querySelector('.comment-edit-area').outerHTML = `
+                <p class="mb-0">${originalText}</p>`;
+        }
+
+        // Подтверждение редактирования
+        if (e.target.classList.contains('confirm-edit-btn')) {
+            e.preventDefault();
+            const commentId = e.target.dataset.commentId;
+            const commentBody = e.target.closest('.comment-body');
+            const textarea = commentBody.querySelector('textarea');
+            const newText = textarea.value.trim();
+            const originalText = commentBody.dataset.originalText.trim();
+
+            if (newText === originalText) {
+                commentBody.querySelector('.comment-edit-area').outerHTML = `
+                    <p class="mb-0">${originalText}</p>`;
+                return;
+            }
+
+            fetch(`{% url 'ajax_edit_comment' %}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': `{{ csrf_token }}`
+                },
+                body: JSON.stringify({
+                    id: commentId,
+                    content: newText
+                })
+            }).then(res => res.json())
+              .then(data => {
+                  if (data.success) {
+                      commentBody.querySelector('.comment-edit-area').outerHTML = `
+                          <p class="mb-0">${newText}</p>`;
+                  } else {
+                      alert('Ошибка при сохранении комментария');
+                  }
+              }).catch(error => {
+                  console.error(error);
+                  alert('Ошибка запроса');
+              });
+            }
+        // Удаление комментария
+        if (e.target.classList.contains('delete-btn')) {
+            e.preventDefault();
+            const commentId = e.target.dataset.commentId;
+
+            fetch(`{% url 'ajax_delete_comment' %}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': `{{ csrf_token }}`
+                },
+                body: JSON.stringify({ id: commentId })
+            }).then(res => {
+                if (res.ok) {
+                    e.target.closest('.comment-body').querySelector('p').innerText = 'Комментарий удалён';
+                } else alert('Ошибка при удалении');
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

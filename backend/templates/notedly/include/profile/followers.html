@@ -1,0 +1,31 @@
+<div class="modal fade" id="followersModal" tabindex="-1" aria-labelledby="followersModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="followersModalLabel">Подписчики</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body modal-body d-flex flex-column gap-2">
+        {% for follower in profile.followers.all %}
+            <div class="d-flex align-items-center">
+                <a class="d-flex align-items-center gap-2 text-decoration-none text-body" href="{% url 'profile' profile_id=follower.id %}">
+                    {% include 'notedly/include/user_profile.html' with profile=follower width=35 height=35 %}
+                    <div class="d-flex flex-column">
+                        <div class="fs-6">@{{ follower }}</div>
+                    </div>
+                </a>
+                {% if request.user.profile != follower %}
+                <button class="ms-auto btn btn-sm border follow-btn" data-profile-id="{{ follower.id }}">
+                    {% if profile in follower.followers.all %}
+                        Отписаться
+                    {% else %}
+                        Подписаться
+                    {% endif %}
+                </button>
+                {% endif %}
+            </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>

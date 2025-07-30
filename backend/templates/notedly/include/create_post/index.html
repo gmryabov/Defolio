@@ -1,0 +1,48 @@
+<!-- Modal -->
+<div class="modal fade" id="create" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="createLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content" method="post">
+      <div class="modal-header">
+         <div class="d-flex gap-2 align-items-center">
+            {% if user.profile.profile_pic %}
+                <img src="{{ user.profile.profile_pic.url }}" alt="" width="45" height="45" class="rounded-circle">
+            {% else %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                  <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"></path>
+                  <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"></path>
+                </svg>
+            {% endif %}
+            <div class="d-flex flex-column">
+                <div class="fs-5">{{ request.user.first_name }}</div>
+                <div class="dropdown" id="post_dropdown">
+                  <button class="btn dropdown-toggle p-0 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="{{ empty_topic.icon.url }}" alt="">{{ empty_topic }}
+                  </button>
+                  <ul class="dropdown-menu">
+                      {% for cat in categories %}
+                          <li>
+                              <a class="dropdown-item d-flex gap-1 {% if empty_topic == cat %}active{% endif %}" href="#" data-id="{{ cat.id }}">
+                                  <img src="{{ cat.icon.url }}" alt="">{{ cat }}
+                              </a>
+                          </li>
+                      {% endfor %}
+                  </ul>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+          {% csrf_token %}
+          {{ post_form.title }}
+          {{ post_form.content }}
+          <input type="hidden" name="action" value="new_post">
+          <input type="hidden" name="category" value="1" id="post_category">
+          <input type="hidden" name="post_id" id="post_id">
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Опубликовать</button>
+      </div>
+    </form>
+  </div>
+</div>

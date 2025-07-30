@@ -1,0 +1,62 @@
+<div class="comment" id="comment-{{ comment.id }}">
+    {% if comment.parent %}
+        <div class="branches position-relative" style="">
+            <div class="branch">
+                <div class="arc"></div>
+            </div>
+        </div>
+    {% endif %}
+    <div class="{% if comment.parent %}ps-4{% endif %} pt-2 comment-body" style="{% if not forloop.last and comment.parent %}border-left: 1px solid rgba(var(--bs-secondary-rgb),1)!important;{% else %}border-left: 1px solid transparent;{% endif %}">
+        <div class="comment-data">
+        {% if not comment.is_deleted %}
+            <a href="{% url 'profile' profile_id=comment.author.id %}" class="d-flex align-items-center gap-2 text-decoration-none text-body">
+                {% include 'notedly/include/user_profile.html' with profile=comment.author width=35 height=35 %}
+                <div class="d-flex flex-column">
+                    <div class="fs-6">@{{ comment.author.user.username }}</div>
+                    <div class="text-secondary" style="font-size: small">{{ comment.created_at|timesince }} назад</div>
+                </div>
+            </a>
+        {% endif %}
+            {% if comment.is_deleted %}
+            <div class="d-flex align-items-center gap-2 text-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" fill="currentColor" class="bi bi-ban" viewBox="0 0 16 16">
+                  <path d="M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0"></path>
+                </svg>
+                <p class="m-0 text-muted">Комментарий удален.</p>
+            </div>
+            {% else %}
+            <p class="m-0">{{ comment.content }}</p>
+            {% endif %}
+            <div class="d-flex align-items-center gap-2">
+                {% if not comment.is_deleted %}
+                <a href="#" class="text-muted text-decoration-none reply-link" data-comment-id="{{ comment.id }}" data-reply-to="{{ comment.author.user.username }}" data-post-id="{{ post.id }}" style="font-size: smaller">Ответить</a>
+                    <div class="border-0 px-2 py-1 rounded-pill text-decoration-none text-body like-comment-btn" data-post-id="{{ post.id }}" data-comment-id="{{ comment.id }}" style="width: auto">
+                        {% if user.profile in comment.likes.all %}
+                        <i class="bi bi-heart-fill"></i>
+                        {% else %}
+                        <i class="bi bi-heart"></i>
+                        {% endif %}
+                        <span class="like-comment-count">{{ comment.likes.count }}</span>
+                    </div>
+                {% endif %}
+                {% if comment.author.user == request.user and not comment.is_deleted %}
+                <div class="dropdown">
+                  <button class="btn dropdown-toggle btn-sm drop-without" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-three-dots"></i>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item edit-btn" data-comment-id="{{ comment.id }}" href="#">Изменить</a></li>
+                    <li><a class="dropdown-item delete-btn" data-comment-id="{{ comment.id }}" href="#">Удалить</a></li>
+                  </ul>
+                </div>
+                {% endif %}
+
+            </div>
+            <div class="replies ms-2" id="replies-{{ comment.id }}">
+                {% for reply in comment.replies.all %}
+                    {% include 'notedly/include/post/comment.html' with comment=reply post=post%}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,96 @@
+<div class="card bg-body-tertiary border-0" id="post-{{ post.id }}" {% if not post.is_published and post.author != request.user.profile %}style="display: none"{% endif %}>
+    <div class="card-body position-relative">
+        {% if not post.is_published %}<span class="badge text-bg-danger position-absolute start-50 translate-middle">Не опубликовано</span>{% endif %}
+        <div class="d-flex gap-2 align-items-center">
+            <a href="{% url 'profile' profile_id=post.author.id %}" class="d-flex align-items-start gap-2 text-decoration-none text-body">
+                {% include 'notedly/include/user_profile.html' with profile=post.author width=42 height=42 %}
+                <div class="d-flex flex-column mb-2">
+                    <div class="fs-6">@{{ post.author.user.username }}</div>
+                    {% if post.categories.all %}
+                        <div class="small">
+                            {% for category in post.categories.all %}
+                                <div class="small d-flex gap-2">
+                                    <div class="small d-flex">
+                                        <img src="{{ category.icon.url }}" alt="" width="15" height="15">{{ category.title }}
+                                    </div>
+                                    <div class="text-muted small">{{ post.created_at|timesince }} назад</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="small d-flex gap-2">
+                            <div class="small d-flex">
+                                <img src="{{ empty_topic.icon.url }}" alt="" width="15" height="15">{{ empty_topic.title }}
+                            </div>
+                            <div class="text-muted small">{{ post.created_at|timesince }}</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </a>
+            {% if request.user.is_authenticated and request.user != post.author.user %}
+                <button class="ms-auto btn bg-body btn-sm follow-btn" data-profile-id="{{ post.author.id }}">
+                    {% if request.user.profile in post.author.followers.all %}
+                        Отписаться
+                    {% else %}
+                        Подписаться
+                    {% endif %}
+                </button>
+            {% elif request.user == post.author.user %}
+                <div class="ms-auto dropdown">
+                    <button class="btn dropdown-toggle drop-without" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots"></i></button>
+                    <ul class="dropdown-menu">
+                      <li><a class="dropdown-item edit-btn"
+                                data-post-id="{{ post.id }}"
+                                data-title="{{ post.title|safe }}"
+                                data-content="{{ post.content|safe }}"
+                                data-category-id="{{ post.categories.first.id }}"
+                             href="#">Редактировать</a></li>
+                      <li>
+                          <a class="dropdown-item publish-btn" href="#" data-post-id="{{ post.id }}">
+                            {% if post.is_published %}
+                                Снять с публикации
+                            {% else %}
+                                Опубликовать
+                            {% endif %}
+                          </a>
+                      </li>
+                      <li><a class="dropdown-item " href="#" data-bs-toggle="modal" data-bs-target="#deleteModal{{ post.id }}">Удалить</a></li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+        <a href="{% url 'post_detail' post_slug=post.slug %}" class="text-decoration-none text-body mb-3">
+            <h5 class="card-title fs-5">{{ post.title }}</h5>
+            <p class="card-text">{{ post.content|linebreaksbr|truncatechars:500 }}</p>
+            {% if post.content|length > 500 %}
+                <a href="{% url 'post_detail' post_slug=post.slug %}" class="text-decoration-none text-primary">Читать далее</a>
+            {% endif %}
+        </a>
+        <div class="card-footer bg-body-tertiary px-0 mt-3">
+            <ul class="list-group list-group-horizontal gap-1">
+                <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill text-decoration-none text-body like-btn" data-post-id="{{ post.id }}" style="width: auto">
+                    {% if user.profile in post.likes.all %}
+                    <i class="bi bi-heart-fill"></i>
+                    {% else %}
+                    <i class="bi bi-heart"></i>
+                    {% endif %}
+                    <span class="like-count">{{ post.likes.count }}</span>
+                </li>
+                <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill text-decoration-none text-body bookmark-btn" data-post-id="{{ post.id }}" style="width: auto">
+                      {% if user.profile in post.bookmarks.all %}
+                      <i class="bi bi-bookmark-fill"></i>
+                      {% else %}
+                      <i class="bi bi-bookmark"></i>
+                      {% endif %}
+                      <span class="bookmark-count">{{ post.bookmarks.count }}</span>
+                </li>
+                <li class="list-group-item list-group-item-action border-0 px-2 py-1 rounded-pill" style="width: auto">
+                    <a href="{% url 'post_detail' post_slug=post.slug %}#comments" class="text-decoration-none text-body">
+                        <i class="bi bi-chat"></i> {{ post.comments.count }}
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% include 'notedly/include/post/confirm_modal.html' with id=post.id %}

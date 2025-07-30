@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/notedly/style.css' %}" type="text/css">
+    <script src="{% static 'js/notedly/post/post_dropdown.js' %}"></script>
+{% endblock %}
+
+{% block body %}
+    <header class="p-2 mb-3 bg-body-secondary position-sticky top-0" style="z-index: 10;">
+        <div class="container">
+            <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+                <a href="{% url 'notedly' %}" class="d-flex align-items-center mb-lg-0 link-body-emphasis text-decoration-none bitcount-grid-single-400 fs-3">
+                    NOTEDLY
+                </a>
+                {% if request.user.is_authenticated %}
+                    <button type="button" class="btn ms-auto rounded-pill focus-ring bg-body" id="createPostBtn" data-bs-toggle="modal" data-bs-target="#create">
+                        <i class="bi bi-pen"></i> Написать
+                    </button>
+                    <div class="dropdown ms-3">
+                        <a href="{% url 'profile' profile_id=user.profile.id %}" class="d-block link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            {% include 'notedly/include/user_profile.html' with profile=user.profile width=34 height=34 %}
+                        </a>
+                        <ul class="dropdown-menu text-small">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'profile' profile_id=user.profile.id %}">
+                                    <div class="d-flex align-items-center gap-2">
+                                        {% include 'notedly/include/user_profile.html' with profile=user.profile width=45 height=45 %}
+                                        <div class="d-flex flex-column">
+                                            <div class="fs-5">{{ request.user.first_name }}</div>
+                                            <div class="text-secondary" style="font-size: small">@{{ request.user.username }}</div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                            <li><a class="dropdown-item" href="#" id="theme-toggler">Переключить тему</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="bi bi-door-open"></i>Выйти</a>
+                        </li>
+                        </ul>
+                    </div>
+                {% else %}
+                      <button type="button" class="ms-auto btn btn-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#loginModal">
+                          Вход
+                      </button>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+    <div class="container mb-5">
+        <div class="row">
+            <div class="col-6 col-sm-2">
+                <span class="text-secondary" style="font-size: small">Темы</span>
+                <ul class="list-group list-group-flush">
+                {% for cat in categories %}
+                   <li class="list-group-item list-group-item-action border-0 rounded">
+                       <a class="text-body text-decoration-none text-start align-items-center d-flex gap-1" href="{% url 'notedly' %}?category={{ cat.slug }}">
+                           <img src="{{ cat.icon.url }}" alt="">{{ cat }}
+                       </a>
+                   </li>
+                {% endfor %}
+                </ul>
+            </div>
+            <div class="col gap-3 d-flex flex-column">
+            {% block notedly-body %}
+                {% if posts %}
+                    {% for post in posts %}
+                        {% if post.is_published and not post.is_deleted %}
+                            {% include 'notedly/include/post/index.html' with post=post %}
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <span class="text-secondary text-center" style="margin-top: 10rem; font-size: small">На эту тему еще ничего не написано</span>
+                {% endif %}
+            {% endblock %}
+            </div>
+            <div class="col-6 col-sm-3">
+            {% if users %}
+                <div class="bg-body-tertiary p-3 rounded mb-3">
+                    <div class="fs-6 mb-1">Топ блогов</div>
+                    <div class="d-flex flex-column gap-2">
+                    {% for usr in users %}
+                        <div class="fs-6">
+                            <a class="d-flex align-items-center gap-2 text-decoration-none text-body" href="{% url 'profile' profile_id=usr.id %}">
+                            {% include 'notedly/include/user_profile.html' with profile=usr width=35 height=35 %}
+                                <div class="d-flex flex-column">
+                                    <div class="fs-6">@{{ usr }}</div>
+                                    <div class="text-muted smaller">{{ usr.followers.count|follower_with_suffix }}</div>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            {% if top_comments %}
+                <div class="bg-body-tertiary p-3 rounded mb-3">
+                    <div class="fs-6 mb-1">Популярные комментарии</div>
+                    <div class="d-flex flex-column gap-2">
+                        {% for comment in top_comments %}
+                            {% if not comment.is_deleted %}
+                                <div class="d-flex flex-column mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                    {% include 'notedly/include/user_profile.html' with profile=comment.author width=35 height=35 %}
+                                    <div class="d-flex flex-column mb-2">
+                                        <div class="fs-6">@{{ comment.author }}</div>
+                                            <div class="text-muted smaller">в посте <a class="text-decoration-none text-body" href="{% url 'post_detail' post_slug=comment.post.slug %}">{{ comment.post.title }}</a></div>
+                                        </div>
+                                    </div>
+                                    <p class="m-0 smaller">{{ comment.content }}</p>
+                                    <div class="border-0 px-0 py-1 rounded-pill text-decoration-none text-body like-comment-btn" data-post-id="{{ post.id }}" data-comment-id="{{ comment.id }}" style="width: auto">
+                                        {% if user.profile in comment.likes.all %}
+                                        <i class="bi bi-heart-fill"></i>
+                                        {% else %}
+                                        <i class="bi bi-heart"></i>
+                                        {% endif %}
+                                        <span class="like-comment-count">{{ comment.likes.count|format_with_suffix }}</span>
+                                    </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+    {% include 'notedly/include/create_post/index.html' %}
+    {% include 'notedly/include/login/index.html' %}
+    {% include 'notedly/include/register/index.html' %}
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        function setupToggleButton(selector, action, iconClassBase, countClass) {
+            document.querySelectorAll(selector).forEach(button => {
+                button.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const postId = this.dataset.postId;
+
+                    fetch("{% url 'ajax_toggle_relation' %}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `post_id=${postId}&action=${action}`
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        // Обновление счётчика
+                        const countSpan = this.querySelector(`.${countClass}`);
+                        if (countSpan && data[`${action}s_count`] !== undefined) {
+                            countSpan.textContent = data[`${action}s_count`];
+                        }
+
+                        // Обновление иконки
+                        const icon = this.querySelector('i');
+                        if (!icon) return;
+
+                        const activeClass = `${iconClassBase}-fill`;
+                        const inactiveClass = `${iconClassBase}`;
+
+                        if (data[`${action}ed`]) {
+                            icon.classList.remove(inactiveClass);
+                            icon.classList.add(activeClass);
+                        } else {
+                            icon.classList.remove(activeClass);
+                            icon.classList.add(inactiveClass);
+                        }
+                    });
+                });
+            });
+        }
+
+        // Применяем к кнопкам лайков и закладок
+        setupToggleButton('.like-btn', 'like', 'bi-heart', 'like-count');
+        setupToggleButton('.bookmark-btn', 'bookmark', 'bi-bookmark', 'bookmark-count');
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.follow-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const profileId = this.dataset.profileId;
+
+                fetch("{% url 'ajax_toggle_follow' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `target_id=${profileId}`
+                })
+                .then(res => res.json())
+                .then(data => {
+                    // Обновляем все кнопки с тем же data-profile-id
+                    document.querySelectorAll(`.follow-btn[data-profile-id="${profileId}"]`)
+                        .forEach(btn => {
+                            btn.textContent = data.following ? 'Отписаться' : 'Подписаться';
+                            // Если есть счётчик подписчиков внутри кнопки
+                            const countSpan = btn.querySelector('.followers-count');
+                            if (countSpan) {
+                                countSpan.textContent = data.followers_count;
+                            }
+                        });
+                });
+            });
+        });
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        function setupToggleButton(selector, iconClassBase, countClass) {
+            document.querySelectorAll(selector).forEach(button => {
+                button.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const commentId = this.dataset.commentId;
+
+                    fetch("{% url 'ajax_like_comment' %}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `comment_id=${commentId}`
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log(data)
+                        // Обновление счётчика
+                        const countSpan = this.querySelector(`.like-comment-count`);
+                        if (countSpan && data[`likes_count`] !== undefined) {
+                            countSpan.textContent = data[`likes_count`];
+                        }
+
+                        // Обновление иконки
+                        const icon = this.querySelector('i');
+                        if (!icon) return;
+
+                        const activeClass = `${iconClassBase}-fill`;
+                        const inactiveClass = `${iconClassBase}`;
+
+                        if (data[`liked`]) {
+                            icon.classList.remove(inactiveClass);
+                            icon.classList.add(activeClass);
+                        } else {
+                            icon.classList.remove(activeClass);
+                            icon.classList.add(inactiveClass);
+                        }
+                    });
+                });
+            });
+        }
+        // Применяем к кнопкам лайков у комментариев
+        setupToggleButton('.like-comment-btn', 'bi-heart', 'like-comment-count');
+    });
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const postId = this.dataset.postId;
+            const title = this.dataset.title;
+            const content = this.dataset.content;
+            const categoryId = this.dataset.categoryId;
+
+            // Заполняем поля
+            document.querySelector('#id_title').value = title;
+            document.querySelector('#id_content').value = content;
+            document.querySelector('#post_id').value = postId;
+            document.querySelector('#post_category').value = categoryId;
+
+            // Открываем модалку
+            const modal = new bootstrap.Modal(document.getElementById('create'));
+            modal.show();
+        });
+    });
+    document.querySelector('#createPostBtn').addEventListener('click', function () {
+        document.querySelector('#id_title').value = '';
+        document.querySelector('#id_content').value = '';
+        document.querySelector('#post_id').value = '';
+        document.querySelector('#post_category').value = 1;
+     });
+    document.querySelectorAll('.publish-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const postId = this.dataset.postId;
+
+            fetch("{% url 'ajax_toggle_post_publish' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": `{{ csrf_token }}`,
+                },
+                body: JSON.stringify({ post_id: postId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Пример реакции на ответ
+                if (data.success) {
+                    this.textContent = data.is_published ? "Снять с публикации" : "Опубликовать";
+                } else {
+                    alert("Ошибка: " + data.error);
+                }
+            })
+            .catch(error => {
+                console.error("Ошибка запроса:", error);
+            });
+        });
+    });
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const postId = this.dataset.postId;
+                fetch("{% url 'ajax_delete_post' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": `{{ csrf_token }}`,
+                    },
+                    body: JSON.stringify({ post_id: postId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const post = document.getElementById(`post-${postId}`);
+                        post.style.display = 'none';
+                        location.reload();
+                    } else {
+                        console.error("Ошибка: " + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error("Ошибка запроса:", error);
+                });
+        })
+    });
+    </script>
+{% endblock %}
