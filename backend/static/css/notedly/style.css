@@ -77,8 +77,10 @@ body {
 #backgroundPreview {
     border-bottom-left-radius: 0 !important;
     border-bottom-right-radius: 0 !important;
-    background-repeat: no-repeat, repeat;
+    /*background-repeat: no-repeat, repeat;*/
+    background-repeat: repeat;
     background-position-x: center;
+    background-size: cover;
 }
 
 .branch {

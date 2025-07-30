@@ -18,50 +18,20 @@ def home(request):
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'login':
-            login_form = LoginForm(request, data=request.POST)
-            if login_form.is_valid():
-                login_name = request.POST.get('username')
-                password = request.POST.get('password')
-
-                # Попробуем аутентифицировать пользователя по имени пользователя
-                user = authenticate(request, username=login_name, password=password)
-
-                # Если пользователь не найден, проверим по email
-                if user is None:
-                    try:
-                        # Найдем пользователя по email
-                        user = User.objects.get(email=login_name)
-                        # Проверим пароль
-                        if user.check_password(password):
-                            user = user  # Установим найденного пользователя
-                    except User.DoesNotExist:
-                        user = None  # Если пользователь не найден по email
-
-                # Если пользователь найден, выполняем вход
-                if user is not None and user.is_active:
-                    login(request, user)
-                    return redirect('notedly')
-            else:
-                return JsonResponse({"error": login_form.errors, "data": request.POST}, status=400)
-        elif action == 'register':
-            register_form = UserRegisterForm(request.POST)
-            if register_form.is_valid():
-                user = register_form.save(commit=False)
-                user.first_name = register_form.cleaned_data['first_name']
-                user.last_name = register_form.cleaned_data['last_name']
-                user.save()
-
-                # Создаём профиль
-                profile_pic = register_form.cleaned_data.get('profile_pic')
-                models.Profile.objects.create(user=user, profile_pic=profile_pic)
-
-                login(request, user)  # авторизуем после регистрации
+            user = _login(request)
+            # Если пользователь найден, выполняем вход
+            if user is not None and user.is_active:
+                login(request, user)
                 return redirect('notedly')
-            else:
-                return JsonResponse({"error": register_form.errors, "data": request.POST}, status=400)
+            # else:
+            #     return JsonResponse({"error": login_form.errors, "data": request.POST}, status=400)
+        elif action == 'register':
+            _register(request)
+
         elif action == 'new_post':
             _new_post(request)
-            return redirect('notedly')
+
+        return redirect('notedly')
 
     if 'category' in request.GET:
         posts = models.Post.objects.filter(
@@ -72,8 +42,6 @@ def home(request):
         posts = models.Post.objects.order_by('-created_at')
     context = {
         'title': 'Главная',
-        'login_form': LoginForm(),
-        'register_form': UserRegisterForm(),
         'posts': posts,
     }
     return render(request, 'notedly/home/index.html', context=context | _get_context(request))
@@ -84,6 +52,8 @@ def _get_context(request):
         'categories': models.Category.objects.all(),
         'empty_topic': models.Category.objects.filter(title='Без темы').first(),
         'post_form': PostCreateForm(),
+        'register_form': UserRegisterForm(),
+        'login_form': LoginForm(),
         'users': models.Profile.objects.annotate(followers_count=Count('followers')).order_by('-followers_count')[:3],
         'top_comments': models.Comment.objects.annotate(likes_count=Count('likes')).order_by('-likes_count')[:10],
     }
@@ -111,6 +81,44 @@ def _new_post(request):
             post.categories.add(category)
         except models.Category.DoesNotExist:
             pass
+
+
+def _register(request):
+    register_form = UserRegisterForm(request.POST)
+    if register_form.is_valid():
+        user = register_form.save(commit=False)
+        user.first_name = register_form.cleaned_data['first_name']
+        user.last_name = register_form.cleaned_data['last_name']
+        user.save()
+
+        # Создаём профиль
+        profile_pic = register_form.cleaned_data.get('profile_pic')
+        models.Profile.objects.create(user=user, profile_pic=profile_pic)
+
+        login(request, user)  # авторизуем после регистрации
+
+
+def _login(request):
+    login_form = LoginForm(request, data=request.POST)
+    if login_form.is_valid():
+        login_name = request.POST.get('username')
+        password = request.POST.get('password')
+
+        # Попробуем аутентифицировать пользователя по имени пользователя
+        user = authenticate(request, username=login_name, password=password)
+
+        # Если пользователь не найден, проверим по email
+        if user is None:
+            try:
+                # Найдем пользователя по email
+                user = User.objects.get(email=login_name)
+                # Проверим пароль
+                if user.check_password(password):
+                    user = user  # Установим найденного пользователя
+            except User.DoesNotExist:
+                user = None  # Если пользователь не найден по email
+        return user
+    return None
 
 # выход
 def logout_view(request):
@@ -230,6 +238,9 @@ def profile_view(request, profile_id):
         if action == 'new_post':
             _new_post(request)
             return redirect('profile')
+        elif action == 'register':
+            _register(request)
+            return redirect('notedly')
 
     return render(request, 'notedly/profile/index.html', context=context | _get_context(request))
 
