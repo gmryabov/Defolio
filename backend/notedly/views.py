@@ -248,9 +248,14 @@ def profile_view(request, profile_id):
 # пост детально
 def post_detail_view(request, post_slug):
     post = Post.objects.get(slug=post_slug)
+    posts = models.Post.objects.filter(categories__in=post.categories.all()) \
+    .exclude(id=post.id) \
+    .distinct() \
+    .order_by('-created_at')
     context = {
         'post': post,
         'title': post.title,
+        'posts': posts,
     }
     return render(request, 'notedly/post/detail/index.html', context=context | _get_context(request))
 

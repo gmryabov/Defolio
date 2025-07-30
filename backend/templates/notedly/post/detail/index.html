@@ -122,6 +122,15 @@
     {% endfor %}
     </div>
 </div>
+{% if posts %}
+    <div class="fs-3">Другие посты на тему</div>
+    {% for pst in posts %}
+        {% if not pst.is_deleted and pst.is_published %}
+            {% include 'notedly/include/post/index.html' with post=pst %}
+        {% endif %}
+    {% endfor %}
+{#</div>#}
+{% endif %}
 {% include 'notedly/include/post/confirm_modal.html' with id=post.id %}
 <script>
     $(document).ready(function () {
