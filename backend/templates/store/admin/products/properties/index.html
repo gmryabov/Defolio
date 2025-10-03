@@ -1,0 +1,116 @@
+{% extends 'store/admin/home/index.html' %}
+
+
+{% block search %}
+    <form class="input-group w-auto" action="{# {% url 'search' %} #}" method="get">
+        <input type="search" name="q" class="form-control" id="search" placeholder="Поиск" aria-label="Recipient’s username" aria-describedby="button-addon2" value="{% if query %}{{ query }}{% endif %}">
+        <button class="btn btn-outline-secondary search-btn" type="submit" id="button-addon2"><i class="bi bi-search"></i></button>
+    </form>
+    <div class="btn ms-auto btn-primary" data-bs-toggle="modal" data-bs-target="#itemPropertyForm">Добавить</div>
+    {% include 'store/admin/products/properties/include/property_form.html' with item_property_form=item_property_form %}
+{% endblock %}
+
+
+
+{% block products-body %}
+<table class="table table-hover mb-0">
+    <thead>
+        <tr>
+            <th scope="col">Название</th>
+            <th scope="col">Активность</th>
+            <th scope="col">Обязательный</th>
+            <th scope="col">Аспектный</th>
+            <th scope="col">Множественный</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for prop in properties %}
+        <tr>
+            <td>{{ prop.title }}</td>
+            <td><input class="form-check-input" type="checkbox" value="" id="checkChecked" aria-label="" {% if prop.is_active %}checked{% endif %}></td>
+            <td><input class="form-check-input" type="checkbox" value="" id="checkChecked" aria-label="" {% if prop.is_required %}checked{% endif %}></td>
+            <td><input class="form-check-input" type="checkbox" value="" id="checkChecked" aria-label="" {% if prop.is_aspect %}checked{% endif %}></td>
+            <td><input class="form-check-input" type="checkbox" value="" id="checkChecked" aria-label="" {% if prop.is_multiply %}checked{% endif %}></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+
+
+
+<script>
+$(document).ready(function () {
+    let counter = 1; // начальное значение ID
+    $("#addBtn").on("click", function () {
+        counter++;
+        let row = `
+            <tr>
+                <td style="align-content: center">
+                    <div class="form-check form-switch">
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            name="is_active[]"
+                            value="${counter}"
+                            id="checkSwitch-${counter}"
+                            checked
+                            aria-label="">
+                    </div>
+                </td>
+                <td>
+                    <input
+                        type="text"
+                        class="form-control"
+                        name="prop_value[]"
+                        id="prop-value-${counter}"
+                        aria-label="">
+                </td>
+                <td>
+                    <div class="btn btn-outline-danger delete-btn" id="prop-value-delete-${counter}">
+                        <i class="bi bi-trash"></i>
+                    </div>
+                </td>
+            </tr>
+        `;
+
+        $("#prop-values-body").append(row);
+    });
+
+    // делегируем удаление (работает и для динамически добавленных элементов)
+    $(document).on("click", ".delete-btn", function () {
+        $(this).closest("tr").remove();
+    });
+
+    // переключение на форму значений
+    {#$("#prop-value-form-page").on("click", function () {#}
+    {#    $("#prop-form-page").removeClass("active");#}
+    {#    $("#prop-value-form-page").addClass("active");#}
+    {##}
+    {#    $("#prop-form").removeClass("d-flex").addClass("d-none");#}
+    {#    $("#prop-value-form").removeClass("d-none").addClass("d-flex");#}
+    {# });#}
+
+    // переключение на форму свойств (обратная сторона)
+    {#$("#prop-form-page").on("click", function () {#}
+    {#    $("#prop-value-form-page").removeClass("active");#}
+    {#    $("#prop-form-page").addClass("active");#}
+    {##}
+    {#    $("#prop-value-form").removeClass("d-flex").addClass("d-none");#}
+    {#    $("#prop-form").removeClass("d-none").addClass("d-flex");#}
+    {# });#}
+
+    $('#id_type').on('change', function () {
+        if ($(this).val() === 'arr') {
+            $('#props')
+                .removeClass('d-none')
+                .addClass('d-flex');
+        } else {
+            $('#props')
+                .removeClass('d-flex')
+                .addClass('d-none');
+        }
+    });
+});
+</script>
+{% endblock %}

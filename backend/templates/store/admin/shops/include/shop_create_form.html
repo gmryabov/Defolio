@@ -1,0 +1,34 @@
+<div class="modal" id="shopCreationForm" tabindex="-1" aria-labelledby="shopCreationFormLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom-0 p-5 pb-4">
+                <h1 class="modal-title fs-5" id="shopCreationFormLabel">Создание магазина</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form class="modal-body p-5 pt-0 gap-3 d-flex flex-column" method="POST">
+                    {% csrf_token %}
+                    <div class="form-check">
+                        {{ shop_creation_form.is_active }}
+                        <label class="form-check-label" for="id_is_active">Активность</label>
+                    </div>
+                    <div class="form-floating">
+                        {{ shop_creation_form.title }}
+                        <label for="id_name">Название</label>
+                    </div>
+                    <div class="form-floating">
+                        {{ shop_creation_form.description }}
+                        <label for="id_description">Описание</label>
+                    </div>
+                    <div class="input-group">
+                        <label for="id_logo" class="input-group-text">Логотип</label>
+                        {{ shop_creation_form.logo }}
+                    </div>
+                {{ shop_creation_form.source }}
+                <div class="d-flex gap-3">
+                    <button type="button" class="w-100 btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="w-100 btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </div>
+  </div>
+</div>

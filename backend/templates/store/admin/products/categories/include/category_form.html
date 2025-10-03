@@ -1,0 +1,44 @@
+<div class="modal" id="itemCategoryForm" tabindex="-1" aria-labelledby="itemCategoryFormLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom-0 p-5 pb-0">
+                <h1 class="modal-title fs-5" id="itemCategoryFormLabel">Создание категории</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <form method="POST" id="item-property-form">
+                    {% csrf_token %}
+                    <div class="py-3 gap-2 d-flex flex-column" id="prop-form">
+                        <div class="form-check">
+                            {{ item_category_form.is_active }}
+                            <label class="form-check-label" for="id_is_active">Активность</label>
+                        </div>
+{#                        <div class="form-floating">#}
+{#                            {{ item_property_form.type }}#}
+{#                            <label for="id_type">Тип</label>#}
+{#                        </div>#}
+                        <div class="form-floating">
+                            {{ item_category_form.title }}
+                            <label for="id_title">Название</label>
+                        </div>
+                        <div class="form-floating">
+                            {{ item_category_form.shop }}
+                            <label for="id_shop">Магазин</label>
+                        </div>
+                        <div class="form-floating">
+                            {{ item_category_form.parent }}
+                            <label for="id_parent">Родительская категория</label>
+                        </div>
+                            <label for="id_properties">Используемые свойства</label>
+                        {{ item_category_form.properties }}
+
+                    </div>
+                    <div class="d-flex gap-3">
+                        <button type="button" class="w-100 btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="w-100 btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+  </div>
+</div>

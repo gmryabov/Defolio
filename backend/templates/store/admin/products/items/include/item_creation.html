@@ -1,0 +1,119 @@
+{% extends 'store/admin/products/items/index.html' %}
+
+
+{% block shop-admin-body %}
+    <form method="POST" class="d-flex flex-column gap-3">
+        {% csrf_token %}
+        <div class="gap-2 p-2 bg-body-tertiary rounded d-flex flex-column">
+            <div class="form-check">
+                {{ item_form.is_active }}
+                <label class="form-check-label" for="id_is_active">Активность</label>
+            </div>
+            <div class="form-floating">
+                {{ item_form.title }}
+                <label for="id_type">Наименование</label>
+            </div>
+            <div class="form-floating">
+                {{ item_form.sku }}
+                <label for="id_type">Артикул</label>
+            </div>
+            <div class="form-floating">
+                {{ item_form.shop }}
+                <label for="id_type">Магазин</label>
+            </div>
+            <div class="form-floating">
+                {{ item_form.category }}
+                <label for="id_type">Категория</label>
+            </div>
+            {{ item_form.source }}
+        </div>
+        <div class="d-flex flex-column p-2 bg-body-tertiary rounded gap-2" id="props-container">
+
+        </div>
+        <button type="submit" class="w-100 btn btn-primary">Сохранить</button>
+    </form>
+{% endblock %}
+
+
+{% block script %}
+    <script>
+function renderProps(props) {
+        let container = $("#props-container");
+        container.empty(); // очищаем старое содержимое
+
+        props.forEach(prop => {
+            let field = "";
+
+            if (prop.type === "arr") {
+                field = `
+                <div class="form-floating">
+                        <select class="form-select" id="${prop.id}" name="prop_${prop.id}">
+                        <option value="" selected="">---------</option>`;
+                // values — это массив с одним объектом, достаем его
+                let values = prop.values[0] || {};
+                for (let key in values) {
+                    field += `<option value="${key}">${values[key]}</option>`;
+                }
+                field += `</select><label for="${prop.id}">${prop.title}</label></div>`;
+
+            } else if (prop.type === "text") {
+                field = `
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="${prop.id}" name="prop_${prop.id}" placeholder="Введите значение" ">
+                        <label for="${prop.id}">${prop.title}</label>
+                    </div>
+                    `;
+            } else if (prop.type === "bool") {
+                field = `<div class="form-check mb-2">
+                           <input class="form-check-input" type="checkbox" name="prop_${prop.id}" id="${prop.id}">
+                           <label class="form-check-label" for="${prop.slug}">${prop.title}</label>
+                         </div>`;
+            } else if (prop.type === "number") {
+                field = `
+                <div class="form-floating">
+                    <input type="number" id="${prop.id}" class="form-control" name="prop_${prop.id}">
+                    <label for="${prop.id}">${prop.title}</label>
+                </div>
+                `;
+            }
+            {#else if (prop.type === "img") {#}
+            {#    field = `<div>#}
+            {#            <label for="${prop.id}" class="form-label">${prop.title}</label>#}
+            {#            <input type="file" class="form-control" id="${prop.id}" aria-describedby="${prop.slug}" aria-label="Загрузить">#}
+            {#            </div>`#}
+            {# }#}
+            container.append(field);
+        });
+    }
+
+    function getCategoryProps(categoryId) {
+        $.ajax({
+            url: "{% url 'ajax_admin_get_category_props' %}",
+            type: "POST",
+            data: {
+                category_id: categoryId,
+                csrfmiddlewaretoken: "{{ csrf_token }}"
+            },
+            success: function(response) {
+                console.log("Category:", response.category);
+                console.log("Props:", response.props);
+                renderProps(response.props);
+            },
+            error: function(xhr, status, error) {
+                console.error("Ошибка AJAX:", error);
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        $("#id_category").on("change", function() {
+            let categoryId = $(this).val();
+            if (categoryId) {
+                getCategoryProps(categoryId);
+            } else {
+                $("#props-container").empty();
+            }
+        });
+    });
+    </script>
+{% endblock %}

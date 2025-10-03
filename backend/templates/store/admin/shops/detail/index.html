@@ -1,0 +1,139 @@
+{% extends 'store/admin/home/index.html' %}
+{% load store_filters %}
+
+{% block shop-admin-body %}
+    <div class="p-2 rounded bg-body-tertiary d-flex gap-2">
+        <div class="bg-body rounded border d-flex align-items-center justify-content-center position-relative pic-container" style="width: 100px; height: 100px; border-style: dashed !important;" id="ShopImage">
+            {% if shop_detail.logo %}
+                <img src="{{ shop_detail.logo.url }}" alt="" class="rounded" style="width: 98px; height: 98px">
+            {% else %}
+                <i class="bi bi-image rounded" style="font-size: xx-large;"></i>
+            {% endif %}
+            <input type="file" id="mainShopImage" style="display: none;">
+            <div class="overlay rounded"><i class="bi bi-image"></i></div>
+        </div>
+        <div class="d-flex flex-column gap-2">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="shop_title" name="shop_title" data-shop-id="{{ shop_detail.id }}" placeholder="{{ shop_detail.title }}" value="{{ shop_detail.title }}">
+                <label for="shop_title">Наименование</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" {% if shop_detail.is_active %}checked{% endif %} data-shop-id="{{ shop_detail.id }}" id="shop_is_active" name="shop_is_active">
+                <label for="shop_is_active">Активность</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-2 bg-body-tertiary rounded d-flex flex-column align-items-center">
+        <div class="form-floating w-100">
+            <textarea class="form-control" placeholder="Описание" id="shop_description" data-shop-id="{{ shop_detail.id }}" style="height: 300px">{{ shop_detail.description }}</textarea>
+            <label for="shop_description">Описание</label>
+        </div>
+    </div>
+    <div class="sticky-bottom p-2 bg-body-tertiary rounded">
+        <button class="btn btn-primary" id="saveBtn">Сохранить</button>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('ShopImage');
+            const input = document.getElementById('mainShopImage');
+
+            container.addEventListener('click', () => input.click());
+
+            input.addEventListener('change', function () {
+                const file = input.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const existingPreview = container.querySelector('img');
+
+                    if (existingPreview) {
+                        // Есть <img> — просто обновляем src
+                        existingPreview.src = e.target.result;
+                    } else {
+                        const svg = container.querySelector('i');
+                        if (svg) svg.remove();
+
+                        // Создаём <img>
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.alt = '{{ item.title }}';
+                        img.className = "w-100 h-100 object-fit-cover pic-img";
+                        img.id = 'ShopImagePreview';
+                        container.insertBefore(img, input);
+                    }
+                };
+                reader.readAsDataURL(file);
+
+                const formData = new FormData();
+                formData.append('logo', file);
+                formData.append('shop_id', {{ shop_detail.id }})
+
+
+                fetch("{% url 'ajax_admin_shop_logo_image' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': `{{ csrf_token }}`,
+                    },
+                    body: formData,
+                })
+                .then(response => {
+                    if (!response.ok)
+                        {#throw new Error('Upload failed');#}
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        console.log('Изображение успешно загружено');
+                    } else {
+                        console.error('Ошибка: ' + data.error);
+                    }
+                })
+                .catch(
+                    err => {
+                    {#alert('Ошибка загрузки');#}
+                    console.error(err);
+                 }
+                );
+            });
+        });
+    </script>
+    <script>
+    $(document).ready(function () {
+        $('#saveBtn').on('click', function (e) {
+            e.preventDefault();
+
+            const title = $('#shop_title').val();
+            const description = $('#shop_description').val();
+            const is_active = $('#shop_is_active').is(':checked');
+
+            $.ajax({
+                url: "{% url 'ajax_admin_save_shop' %}",
+                type: "POST",
+                data: {
+                    title: title,
+                    description: description,
+                    is_active: is_active,
+                    shop_id: '{{ shop_detail.id }}',
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function (response) {
+                    if (response.success) {
+                        console.log(response);
+                        location.reload();
+                    } else {
+                       console.log('Ошибка: ' + response.error);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    {#console.error(error);#}
+                }
+            });
+        });
+    });
+    </script>
+{% endblock %}

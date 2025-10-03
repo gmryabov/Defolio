@@ -1,0 +1,108 @@
+<div class="modal" id="itemPropertyForm" tabindex="-1" aria-labelledby="itemPropertyFormLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom-0 p-5 pb-0">
+                <h1 class="modal-title fs-5" id="itemPropertyFormLabel">Создание свойства</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0">
+{#                <ul class="nav nav-tabs">#}
+{#                    <li class="nav-item">#}
+{#                        <a class="nav-link active" id="prop-form-page" aria-current="page" href="#">Основное</a>#}
+{#                    </li>#}
+{#                    <li class="nav-item">#}
+{#                        <a class="nav-link" id="prop-value-form-page" href="#">Значения свойств</a>#}
+{#                    </li>#}
+{#                </ul>#}
+                <form method="POST" id="item-property-form">
+                    {% csrf_token %}
+                    <div class="py-3 gap-2 d-flex flex-column" id="prop-form">
+                        <div class="form-check">
+                            {{ item_property_form.is_active }}
+                            <label class="form-check-label" for="id_is_active">Активность</label>
+                        </div>
+                        <div class="form-check">
+                            {{ item_property_form.is_aspect }}
+                            <label class="form-check-label" for="id_is_aspect">Аспектное свойство</label>
+                        </div>
+                        <div class="form-check">
+                            {{ item_property_form.is_multiply }}
+                            <label class="form-check-label" for="id_is_multiply">Множественное</label>
+                        </div>
+                        <div class="form-check">
+                            {{ item_property_form.is_required }}
+                            <label class="form-check-label" for="id_is_required">Обязательное</label>
+                        </div>
+{#                        <div class="form-floating">#}
+{#                            {{ item_property_form.shop }}#}
+{#                            <label for="id_category">Магазин</label>#}
+{#                        </div>#}
+                        <div class="form-floating">
+                            {{ item_property_form.type }}
+                            <label for="id_type">Тип</label>
+                        </div>
+                        <div class="form-floating">
+                            {{ item_property_form.title }}
+                            <label for="id_title">Название</label>
+                        </div>
+                        <div class="form-floating">
+                            {{ item_property_form.description }}
+                            <label for="id_description">Описание</label>
+                        </div>
+{#                        <input type="hidden" name="shop" value="{{ shop.id }}">#}
+                        <div class="flex-column d-flex" id="props">
+                            <table class="table table-borderless m-0">
+                                <thead>
+                                <tr>
+                                    <th scope="col">Акт.</th>
+                                    <th scope="col">Название</th>
+                                    <th scope="col">Удалить</th>
+                                </tr>
+                                </thead>
+                                <tbody id="prop-values-body">
+                                    <tr>
+                                        <td style="align-content: center">
+                                            <div class="form-check form-switch">
+                                              <input class="form-check-input" type="checkbox" value="" name="is_active[]" id="checkSwitch-1" switch checked aria-label="">
+                                            </div>
+                                        </td>
+                                        <td><input type="text" class="form-control" aria-label="" name="prop_value[]" id="prop-value-1"></td>
+                                        <td><div class="btn btn-outline-danger" id="prop-value-delete-1"><i class="bi bi-trash"></i></div></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="btn btn-outline-secondary" id="addBtn">Добавить</div>
+                        </div>
+                    </div>
+{#                    <div class="py-3 d-none flex-column" id="prop-value-form">#}
+{#                        <table class="table table-borderless">#}
+{#                            <thead>#}
+{#                            <tr>#}
+{#                                <th scope="col">Акт.</th>#}
+{#                                <th scope="col">Название</th>#}
+{#                                <th scope="col">Удалить</th>#}
+{#                            </tr>#}
+{#                            </thead>#}
+{#                            <tbody id="prop-values-body">#}
+{#                                <tr>#}
+{#                                    <td style="align-content: center">#}
+{#                                        <div class="form-check form-switch">#}
+{#                                          <input class="form-check-input" type="checkbox" value="" name="is_active[]" id="checkSwitch-1" switch checked aria-label="">#}
+{#                                        </div>#}
+{#                                    </td>#}
+{#                                    <td><input type="text" class="form-control" aria-label="" name="prop_value[]" id="prop-value-1"></td>#}
+{#                                    <td><div class="btn btn-outline-danger" id="prop-value-delete-1"><i class="bi bi-trash"></i></div></td>#}
+{#                                </tr>#}
+{#                            </tbody>#}
+{#                        </table>#}
+{#                        <div class="btn btn-outline-secondary" id="addBtn">Добавить</div>#}
+{#                    </div>#}
+                    <div class="d-flex gap-3">
+                        <button type="button" class="w-100 btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="w-100 btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+  </div>
+</div>

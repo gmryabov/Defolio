@@ -1,0 +1,12 @@
+{% extends 'store/admin/home/index.html' %}
+
+{% block shop-admin-body %}
+    <div class="p-2 d-flex bg-body-tertiary rounded">
+        {% block search %}
+        {% endblock %}
+    </div>
+    <div class="p-2 d-flex bg-body-tertiary rounded">
+    {% block products-body %}
+    {% endblock %}
+    </div>
+{% endblock %}

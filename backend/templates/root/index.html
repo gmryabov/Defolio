@@ -1,4 +1,63 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block body %}
+    <div class="d-flex h-100 text-center">
+        <div class="cover-container d-flex w-100 h-100 mx-auto flex-column">
+            <header class="p-3">
+                <div>
+                    <h3 class="float-md-start mb-0">{{ title }}</h3>
+                    <nav class="nav nav-masthead justify-content-center float-md-end gap-3">
+                        {% if user.is_superuser %}
+                            <a class="nav-link fw-bold py-1 px-0" href="/admin/">Админка</a>
+                            <a class="nav-link fw-bold py-1 px-0" href="http://188.225.43.95:3080/?pgsql=db&username=postgres">База данных</a>
+                            <a class="nav-link fw-bold py-1 px-0 active" aria-current="page" data-bs-toggle="modal" data-bs-target="#exampleModal" href="#">Контакт</a>
+                        {% endif %}
+                    </nav>
+                </div>
+            </header>
+                <div id="carouselExampleCaptions" class="carousel slide" data-bs-ride="carousel">
+                  <div class="carousel-indicators">
+                    {% for slider in sliders %}
+                      <button type="button"
+                              data-bs-target="#carouselExampleCaptions"
+                              data-bs-slide-to="{{ forloop.counter0 }}"
+                              class="{% if forloop.first %}active{% endif %}"
+                              {% if forloop.first %}aria-current="true"{% endif %}
+                              aria-label="Slide {{ forloop.counter }}">
+                      </button>
+                    {% endfor %}
+                  </div>
+
+                  <div class="carousel-inner">
+                    {% for slider in sliders %}
+                      <a class="carousel-item {% if forloop.first %}active{% endif %}" href="{{ slider.url }}">
+                        <picture>
+                            <source media="(max-width: 780px)" srcset="{{ slider.image_mobile.url }}">
+                            <source media="(min-width: 781px)" srcset="{{ slider.image_desktop.url }}">
+                            <img class="w-100" src="{{ slider.image_desktop.url }}" alt="">
+                        </picture>
+                        <div class="carousel-caption d-md-block">
+                          <h5>{{ slider.subtitle }}</h5>
+                        </div>
+                      </a>
+                    {% endfor %}
+                  </div>
+
+                  <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                  </button>
+                  <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                  </button>
+                </div>
+
+            <footer class="mt-auto text-white-50">
+{#                <p>Cover template for <a href="https://getbootstrap.com/" class="text-white">Bootstrap</a>, by <a href="https://x.com/mdo" class="text-white">@mdo</a>.</p>#}
+            </footer>
+        </div>
+    </div>
+    {% include 'root/include/contact.html' %}
 {% endblock %}

@@ -3,6 +3,24 @@
         {% if not post.is_published %}<span class="badge text-bg-danger position-absolute start-50 translate-middle">Не опубликовано</span>{% endif %}
         <div class="d-flex gap-2 align-items-center">
             <a href="{% url 'profile' profile_id=post.author.id %}" class="d-flex align-items-start gap-2 text-decoration-none text-body">
+{#               data-bs-placement="right" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="<em>Tooltip</em> <u>with</u> <b>HTML</b>">#}
+{#            <div class="bg-body-tertiary d-flex flex-column rounded" style="width: 150px;">#}
+{#        <div class="bg-body-secondary w-100 rounded d-flex position-relative"#}
+{#             style="background-image: url({% if profile.background %}{{ profile.background.url }}{% endif %});#}
+{#                     border-bottom-left-radius: 0!important;#}
+{#                     border-bottom-right-radius: 0!important;#}
+{#                     background-size: cover;#}
+{#                     height: 50px !important;">#}
+{#        </div>#}
+{#        <div class="w-100 position-relative p-1 pt-0 d-flex flex-column">#}
+{#            <div class="position-relative" style="left: 15px; top: 5px;">#}
+{#                {% include 'notedly/include/user_profile.html' with profile=profile width=30 height=30 extra_class='position-absolute top-0 start-0 translate-middle' %}#}
+{#            </div>#}
+{#            <div class="text-center smaller">#}
+{#            @{{ profile.user.username }}#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
                 {% include 'notedly/include/user_profile.html' with profile=post.author width=42 height=42 %}
                 <div class="d-flex flex-column mb-2">
                     <div class="fs-6">@{{ post.author.user.username }}</div>

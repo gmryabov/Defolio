@@ -1,0 +1,277 @@
+{% extends 'store/admin/home/index.html' %}
+{% load store_filters %}
+
+{% block shop-admin-body %}
+    <div class="p-2 rounded bg-body-tertiary d-flex gap-2">
+        <div class="bg-body rounded border d-flex align-items-center justify-content-center position-relative pic-container" style="width: 100px; height: 100px; border-style: dashed !important;" id="ItemImage">
+            {% if main_image %}<img src="{{ main_image.url }}" alt="" class="rounded" style="width: 98px; height: 98px">{% endif %}
+            <input type="file" id="mainItemImage" style="display: none;">
+            <div class="overlay rounded"><i class="bi bi-image"></i></div>
+        </div>
+        <div class="d-flex flex-column">
+            <div class="fs-4">{{ item }}</div>
+            <div class="text-muted">Категория товара: {{ item.category.title }}</div>
+        </div>
+    </div>
+
+    <div class="p-2 bg-body-tertiary rounded d-flex flex-column align-items-center">
+        <div class="container">
+            {% for property in item.category.properties.all %}
+                 {% if property.type != "img" %}
+                <div class="row">
+                    <div class="col">
+                        {{ property.title }}
+                    </div>
+                    <div class="col">
+                        {% with assignment=item.prop_assignments|prop_assignment:property %}
+                            {% if assignment %}
+                                {% if property.type == "arr" %}
+                                    {% for v in assignment.values.all %}
+                                        <div>{{ v }}</div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div>{{ assignment.raw_value }}</div>
+                                {% endif %}
+                            {% else %}
+                                <div class="text-muted">—</div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block script %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('ItemImage');
+            const input = document.getElementById('mainItemImage');
+
+            container.addEventListener('click', () => input.click());
+
+            input.addEventListener('change', function () {
+                const file = input.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const existingPreview = container.querySelector('img');
+
+                    if (existingPreview) {
+                        // Есть <img> — просто обновляем src
+                        existingPreview.src = e.target.result;
+                    } else {
+                        const svg = container.querySelector('svg');
+                        if (svg) svg.remove();
+
+                        // Создаём <img>
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.alt = '{{ item.title }}';
+                        img.className = "w-100 h-100 object-fit-cover pic-img";
+                        img.id = 'ItemImagePreview';
+                        container.insertBefore(img, input);
+                    }
+                };
+                reader.readAsDataURL(file);
+
+                const formData = new FormData();
+                formData.append('image_value', file);
+                formData.append('item', {{ item.id }})
+
+
+                fetch("{% url 'ajax_admin_update_item_pic' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': `{{ csrf_token }}`,
+                    },
+                    body: formData,
+                })
+                .then(response => {
+                    if (!response.ok)
+                        {#throw new Error('Upload failed');#}
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        console.log('Изображение успешно загружено');
+                    } else {
+                        console.error('Ошибка: ' + data.error);
+                    }
+                })
+                .catch(
+                    err => {
+                    {#alert('Ошибка загрузки');#}
+                    console.error(err);
+                 }
+                );
+            });
+        });
+    </script>
+
+
+{#      <script>#}
+{#        const productTypeId = {{ product.product_type.id|default:"null" }};#}
+{#        const allowedProperties = {{ allowed_properties_json|safe }};#}
+{#        document.addEventListener('DOMContentLoaded', () => {#}
+{#            const propertySelect = document.querySelector('select[name$="-property"]');#}
+{#            const valueSelect = document.querySelector('select[name$="-value"]');#}
+{##}
+{#            if (!propertySelect || !valueSelect || !productTypeId) return;#}
+{##}
+{#            // Функция для заполнения селекта options#}
+{#            function fillSelect(select, items, placeholder) {#}
+{#                select.innerHTML = '';#}
+{#                if (placeholder) {#}
+{#                    const opt = document.createElement('option');#}
+{#                    opt.value = '';#}
+{#                    opt.textContent = placeholder;#}
+{#                    select.appendChild(opt);#}
+{#                }#}
+{#                items.forEach(item => {#}
+{#                    const option = document.createElement('option');#}
+{#                    option.value = item.id;#}
+{#                    option.textContent = item.value;#}
+{#                    select.appendChild(option);#}
+{#                });#}
+{#            }#}
+{##}
+{#            // Получить свойства при загрузке#}
+{#            function loadProperties() {#}
+{#                fetch('{% url 'ajax_products_property' %}', {#}
+{#                    method: 'POST',#}
+{#                    headers: {#}
+                        {#'Content-Type': 'application/json',#}
+{#                        'Content-Type': 'application/x-www-form-urlencoded',#}
+{#                        'X-CSRFToken': '{{ csrf_token }}',#}
+{#                    },#}
+{#                    body: `product_type_id={{ product.product_type.id }}`#}
+{#                })#}
+{#                    .then(response => response.json())#}
+{#                    .then(data => {#}
+{#                        fillSelect(propertySelect, data.values, 'Выберите свойство');#}
+{#                        valueSelect.innerHTML = '<option value="">Сначала выберите свойство</option>';#}
+{#                    });#}
+{#            }#}
+{##}
+{#            // Получить значения по выбранному свойству#}
+{#            function loadValues(propertyId) {#}
+{#                fetch(`{% url 'ajax_property_values' %}?property_id=${propertyId}`, {#}
+{#                    method: 'POST',#}
+{#                    headers: {#}
+{#                        'X-CSRFToken': '{{ csrf_token }}',#}
+{#                    },#}
+{#                    body: `product_type_id=${propertyId}`#}
+{#                })#}
+{#                    .then(response => response.json())#}
+{#                    .then(data => {#}
+{#                        fillSelect(valueSelect, data.values, 'Выберите значение');#}
+{#                });#}
+{#            }#}
+{##}
+{#            // Событие выбора свойства#}
+{#            propertySelect.addEventListener('change', () => {#}
+{#                const propertyId = propertySelect.value;#}
+{#                if (propertyId) {#}
+{#                    loadValues(propertyId);#}
+{#                } else {#}
+{#                    valueSelect.innerHTML = '<option value="">Сначала выберите свойство</option>';#}
+{#                }#}
+{#            });#}
+{#            // Запускаем загрузку свойств при старте#}
+{#            loadProperties();#}
+{#            const addButton = document.getElementById('add-property-row');#}
+{#            const formsetTableBody = document.querySelector('table.table tbody');#}
+{#            const totalFormsInput = document.querySelector('input[name$="-TOTAL_FORMS"]');#}
+{#            const emptyFormHtml = document.getElementById('empty-form-template').outerHTML;#}
+{##}
+{#            // Возвращает список уже выбранных property#}
+{#            function getSelectedProperties() {#}
+{#                return Array.from(document.querySelectorAll('select[name$="-property"]'))#}
+{#                    .map(select => select.value)#}
+{#                    .filter(val => val);#}
+{#             }#}
+{##}
+{#            addButton.addEventListener('click', () => {#}
+{#                const formIndex = parseInt(totalFormsInput.value);#}
+{#                let newRowHtml = emptyFormHtml.replace(/__prefix__/g, formIndex);#}
+{##}
+{#                const tempContainer = document.createElement('tbody');#}
+{#                tempContainer.innerHTML = newRowHtml;#}
+{#                const newRow = tempContainer.querySelector('tr');#}
+{##}
+{#                const newPropertySelect = newRow.querySelector('select[name$="-property"]');#}
+{#                // ✅ Сбросим выбранный property, если он был предзаполнен#}
+{#                const options = Array.from(newPropertySelect.options);#}
+{#                const selectedValue = newPropertySelect.value;#}
+{#                // Удалим неразрешенные свойства#}
+{#                for (let i = options.length - 1; i >= 0; i--) {#}
+{#                    const opt = options[i];#}
+{#                    if (!allowedProperties.includes(opt.value) && opt.value !== selectedValue) {#}
+{#                        opt.remove();#}
+{#                    }#}
+{#                }#}
+{##}
+                {#newPropertySelect.value = '';#}
+{#                // Обновим количество форм#}
+{#                totalFormsInput.value = formIndex + 1;#}
+{##}
+{#                const newValueSelect = newRow.querySelector('select[name$="-value"]');#}
+{#                newValueSelect.innerHTML = '<option value="">Сначала выберите свойство</option>';#}
+{##}
+{#                formsetTableBody.appendChild(newRow);#}
+{##}
+{#                newPropertySelect.addEventListener('change', () => {#}
+{#                    const propertyId = newPropertySelect.value;#}
+{#                    if (propertyId) {#}
+{#                        loadValuesFor(newValueSelect, propertyId);#}
+{#                    } else {#}
+{#                        newValueSelect.innerHTML = '<option value="">Сначала выберите свойство</option>';#}
+{#                    }#}
+{#                    updateAddButtonState();#}
+{#                });#}
+{#                updateAddButtonState();#}
+{#            });#}
+{#            // Персонализированный fetch для новых value#}
+{#            function loadValuesFor(selectElement, propertyId) {#}
+{#                fetch(`{% url 'ajax_property_values' %}?property_id=${propertyId}`, {#}
+{#                    method: 'POST',#}
+{#                    headers: {#}
+{#                        'X-CSRFToken': '{{ csrf_token }}',#}
+{#                    },#}
+{#                    body: `product_type_id=${propertyId}`#}
+{#                })#}
+{#                .then(response => response.json())#}
+{#                .then(data => {#}
+{#                    fillSelect(selectElement, data.values, 'Выберите значение');#}
+{#                });#}
+{#            }#}
+{#            function updateAddButtonState() {#}
+{#                const totalForms = parseInt(totalFormsInput.value);#}
+{#                addButton.disabled = totalForms >= allowedProperties.length;#}
+{#            }#}
+{##}
+{#            formsetTableBody.addEventListener('click', function (e) {#}
+{#                if (e.target && e.target.classList.contains('btn-close')) {#}
+{#                    const row = e.target.closest('tr');#}
+{#                    if (row) {#}
+{#                        row.remove();#}
+{##}
+{#                        // Обновим счетчик форм — уменьшим на 1#}
+{#                        const currentTotal = parseInt(totalFormsInput.value);#}
+{#                        totalFormsInput.value = currentTotal - 1;#}
+{##}
+{#                        // Обновим доступность кнопки добавления#}
+{#                        updateAddButtonState();#}
+{#                    }#}
+{#                }#}
+{#            });#}
+{#        });#}
+{##}
+{##}
+{#    </script>#}
+{% endblock %}

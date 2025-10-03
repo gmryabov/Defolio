@@ -1,0 +1,33 @@
+{% extends 'store/admin/home/index.html' %}
+
+
+{% block search %}
+    <form class="input-group w-auto" action="{# {% url 'search' %} #}" method="get">
+        <input type="search" name="q" class="form-control" id="search" placeholder="Поиск" aria-label="Recipient’s username" aria-describedby="button-addon2" value="{% if query %}{{ query }}{% endif %}">
+        <button class="btn btn-outline-secondary search-btn" type="submit" id="button-addon2"><i class="bi bi-search"></i></button>
+    </form>
+    <div class="btn ms-auto btn-primary" data-bs-toggle="modal" data-bs-target="#itemCategoryForm">Добавить</div>
+    {% include 'store/admin/products/categories/include/category_form.html' with item_category_form=item_category_form %}
+{% endblock %}
+
+
+{% block products-body %}
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Активность</th>
+                <th scope="col">Название</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for category in categories %}
+            <tr>
+                <th scope="row">{{ category.id }}</th>
+                <td><input class="form-check-input" type="checkbox" value="" id="checkChecked" aria-label="" {% if category.is_active %}checked{% endif %}></td>
+                <td>{{ category.title }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
